@@ -12,7 +12,11 @@
 <script>
     /**
      * Код написанный здесь создает надпись в файлке и загружает его.
-     * НО - он не загружает какой-либо именно файл который есть на сервере
+     * НО - он не загружает какой-либо именно файл который есть на сервере.
+     * https://www.youtube.com/watch?v=Pe142v_JqTM&t=425s - потому что в оригинале этого видео мы создавали запись на сервере
+     * а моя цель - загружать данные из сервера.
+     * К сожалению указать через path.join путь к файлу - не сработало. Функция загрузки файла просто не выполнялась.
+     * Если поменять это на другой метод fs или path - возможно тогда сработает
      * @type {HTMLElement}
      */
     let button = document.getElementById('downloadButton');
@@ -22,6 +26,8 @@
         //we just point it in script insed html without link to exactly this file.
         //here we need to point exactly at file which we want to download. We need to use fs.
         //let excel = path.join(__dirname+'/uploads'+'/excelAutomations.js'); - это неправильно, потому что здесь мы указываем не путь к файлу а надпись в файле
+        //let excel = fs.readfile(path.join(__dirname, 'uploads', 'excelAutomations.js')); - это тоже не работает. Потому что вероятно нету const fs = require.
+        //Но это нельзя в просто script файле указать, а если вынести script файле отдельно то через get express - это не будет читаться.
         let excel = "Some data which I wrote manually in my IDEA";
         download(excel, filename);
     });

@@ -114,6 +114,22 @@ function sendFileSafe(filePath, res){
      * а указание соответствия между переменной ROOT (которая содержит путь к корневой папке к проекта ) с доменным именем (localhostlocalhost:3000)
      * Потому когда user делает запрос  "http://localhost:3000/excelAutomation.xlsx?secret=o_O" - он просит вытащить "__dirname/uploads/excelAutomation.xlsx"
      * и еще и прописывает секрет по которому получит доступ к этой папке. Вот для чего нужен path.join
+     *
+     * Вот что говорит офиц исторчник: https://nodejs.org/api/url.html#url_new_url_input_base
+     *
+     * path.join('/foo', 'bar', 'baz/asdf', 'quux', '..');
+     // Returns: '/foo/bar/baz/asdf'
+
+     path.join('foo', {}, 'bar');
+     // Throws 'TypeError: Path must be a string. Received {}'
+
+
+
+     The path.normalize() method normalizes the given path, resolving '..' and '.' segments.
+
+     path.normalize('/foo/bar//baz/asdf/quux/..');
+     // Returns: '/foo/bar/baz/asdf'
+
      */
 
     filePath = path.normalize(path.join(ROOT, filePath));
@@ -158,6 +174,14 @@ function sendFileSafe(filePath, res){
      callback: It is the function that would be called when the method is executed.
      err: It is an error that would be thrown if the method
      stats: It is the Stats object that contains the details of the file path.
+
+     Больше данных из примеров - здесь: https://www.geeksforgeeks.org/node-js-fs-stat-method/
+
+     ВАЖНО - здесь показано что у метода stats тоже есть продолжения. Например stats.isFile - что говорит о том что так
+     же важно знать эти данные
+
+
+     Returns true if the fs.Stats object describes a regular file.
      */
 
     fs.stat(filePath, function(err, stats){

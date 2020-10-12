@@ -33,7 +33,7 @@ var newWS = xlsx.utils.json_to_sheet(newData);//here we converts all the json da
 xlsx.utils.book_append_sheet(newWB,newWS,"New Data");//it receive new workbook, data from variable which contains data of new json
 //and here is new sheet name "New Data"
 
-xlsx.writeFile(newWB, "New Data File.xlsx");//and this will create a new work book
+xlsx.writeFile(newWB, "./downloads/newDataFile.xlsx");//and this will create a new work book
 
 console.log(wb.SheetNames);//it return name of sheets in file
 /*console.log(ws);//it will tell us all basic info about excel sheet

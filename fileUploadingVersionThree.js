@@ -12,7 +12,23 @@ var ROOT = __dirname + "/downloads";
  * http://localhost:3000/newDataFile.xlsx?secret=o_O
  */
 
-
+/**
+ * Функция Next - если она есть в запросе - то она вызывает именно следующую middleware функцию. Она не вызывает обычную функцию.
+ * Только middleware(у которой есть запрос и ответ). Можно называть эту функцию любым именем, но чтобы не путаться -
+ * лучше называть ее только next.
+ *
+ *Notice the call above to next(). Calling this function invokes the next middleware function in the app.
+ * The next() function is not a part of the Node.js or Express API, but is the third argument that is passed to the
+ * middleware function. The next() function could be named anything, but by convention it is always named “next”.
+ * To avoid confusion, always use this convention.
+ *
+ * Пример:
+ * var requestTime = function (req, res, next) {
+  req.requestTime = Date.now()
+  next()
+}
+ *
+ */
 
 
 
@@ -23,13 +39,21 @@ var ROOT = __dirname + "/downloads";
  */
 const app = express();
 /**
- * Для каждого приложения допускается наличие нескольких статических каталогов:
+ * app.use - функция которая будет использовать определенную другую функцию при каждом запросе(Но это не точно - возможно только для того
+ * запроса перед которым app.use стоит или после запроса если app.use стоит после этого запроса). Например app.use upload -
+ * при каждом get или post запросе будет вызываться функция upload. Но вероятно чтобы функция работала - она в параметрах
+ * должна принимать req, res.
+ * Обычно в app.use указывается middleware функция. То есть конкретно middleware(у которой есть запрос, ответ в параметрах (req, res))
+ *
+ * Для каждого приложения допускается наличие нескольких статических каталогов(можно использовать несколько раз в одном файле app.use
+ * с разными функциями):
 
-
+Пример:
  app.use(express.static('public'));
  app.use(express.static('uploads'));
  app.use(express.static('files'));
 
+ Еще один пример - использование например роутинга
  // mount the router on the app
  app.use('/', router);
  */

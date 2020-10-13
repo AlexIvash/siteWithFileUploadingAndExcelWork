@@ -122,6 +122,8 @@ function sendFileSafe(filePath, res){
 
      path.join('foo', {}, 'bar');
      // Throws 'TypeError: Path must be a string. Received {}'
+     Но знаете что - это всего-лоишь "конкатинация" которая соединяет в путь. Я нашел такой вариант работы path.join у себя:
+     const filePath = path.join(__dirname, 'test', 'text.txt');
 
 
 
@@ -130,6 +132,7 @@ function sendFileSafe(filePath, res){
      path.normalize('/foo/bar//baz/asdf/quux/..');
      // Returns: '/foo/bar/baz/asdf'
 
+В общем только если мы прошли все проверки выше - мы после них только сделаем path.join и сформируем путь к файлу по ссылке
      */
 
     filePath = path.normalize(path.join(ROOT, filePath));
@@ -140,15 +143,30 @@ function sendFileSafe(filePath, res){
      * всего лишь проверить, что в начале находится вот такой вот префикс —  «C:\node\server\public\» то есть, что путь
      * начинается с ROOT. Проверяем и если это не так, то до свидание файла нет. То есть метод сканирует с помощью строки
      * filePath(хотя мне кажется - он проверяет что перед этой строкой лежит строка "ROOT".
-     * Вот пример работы этого метода из инета:
-     * function findIndex(str) {
+     * Метод indexOf есть как для строк, так и для массивов.
+     * Метод indexOf() починає пошук від символа за індексом fromIndex всередині об'єкта String, з якого здійснюється
+     * виклик метода, і вертає індекс першого знайденого збігу із шуканим значенням. Якщо значення не знайдене, повертає -1.
+     *
+     * Вот пример работы метода для строки из инета:
+     function findIndex(str) {
     var index = str.indexOf("awesome");
     console.log(index);
 }
-
      var str = "gfg is awesome";
-
      findIndex(str);
+
+
+     * Вот еще пример для массива:
+     * Метод indexOf() повертає перший індекс, за яким даний елемент був знайдений в масиві,
+     * а якщо він відсутній, то повертає -1:
+
+      var a = [2, 9, 9];
+     a.indexOf(2); // 0
+     a.indexOf(7); // -1
+
+     if (a.indexOf(7) === -1) {
+  // елемент не існує у масиві
+}
      */
 
     if(filePath.indexOf(ROOT) != 0){

@@ -1,3 +1,5 @@
+Login for this project has been taken from the project "passport-node-js" in my repository
+
 in some html there is an input with an attribute "type = "file"" which means that there is enough to display button which will allow to
 load some files to your server. More of other data is to just make it correctly and continue to work with this file
 Загрузчик файлов работает с помощью formdata запросов. 

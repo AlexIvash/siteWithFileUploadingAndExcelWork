@@ -67,12 +67,7 @@ app.use(methodOverride('_method'))
   req.requestTime = Date.now()
   next()
 }
- *
  */
-
-
-
-
 
 /**
  * app.use - функция которая будет использовать определенную другую функцию при каждом запросе(Но это не точно - возможно только для того
@@ -93,8 +88,33 @@ app.use(methodOverride('_method'))
  // mount the router on the app
  app.use('/', router);
  */
-
 app.use(upload());
+
+/**
+ * There we will connect this js file with the html file. SO when browser opens a page(makes a get request) - there will be returned our html file./
+ * That how we works with js and html files.
+ * The middleware is anything that contains request and responce
+ */
+app.get('/', checkAuthenticated, (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
+
+app.post('/', (req, res) => {
+    if(req.files){
+        console.log(req.files);
+        let file = req.files.file;
+        let filename = file.name;
+        console.log(filename);
+
+        file.mv('./uploads/'+filename, function (err) {
+            if (err) {
+                res.send(err);
+            } else {
+                res.send("File Uploaded");
+            }
+        });
+    }
+});
 
 app.get('/login', checkNotAuthenticated, (req, res) => {
     res.render('login.ejs')
@@ -131,31 +151,6 @@ app.delete('/logout', (req, res) => {
     req.logOut()
     res.redirect('/login')
 })
-
-function checkAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next()
-    }
-    res.redirect('/login')
-}
-
-function checkNotAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) {
-        return res.redirect('/')
-    }
-    next()
-}
-
-/**
- * There we will connect this js file with the html file. SO when browser opens a page(makes a get request) - there will be returned our html file./
- * That how we works with js and html files.
- * The middleware is anything that contains request and responce
- */
-app.get('/', checkAuthenticated, (req, res) => {
-    res.sendFile(__dirname + '/index.html');
-});
-
-
 /**
  * This "every request (*)" realization is only for download files from uploads folder.
  * More of code documentation and explanation comments of this method is in fileDownload2.js file!
@@ -189,22 +184,6 @@ app.get('/downloadFiles', (req, res) => {
         }
     });
 
-app.post('/', (req, res) => {
-    if(req.files){
-        console.log(req.files);
-        let file = req.files.file;
-        let filename = file.name;
-        console.log(filename);
-
-        file.mv('./uploads/'+filename, function (err) {
-            if (err) {
-        res.send(err);
-            } else {
-                res.send("File Uploaded");
-            }
-        });
-    }
-});
 app.listen(3000);
 
 function checkAccess(req){
@@ -252,4 +231,18 @@ function sendFile(filePath, res){
         res.setHeader('Content-Type', mime + "; charset=utf-8");
         res.end(content);
     });
+}
+
+function checkAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next()
+    }
+    res.redirect('/login')
+}
+
+function checkNotAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return res.redirect('/')
+    }
+    next()
 }

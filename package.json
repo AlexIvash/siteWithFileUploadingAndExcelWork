@@ -21,6 +21,15 @@
     "https": "^1.0.0",
     "path": "^0.12.7",
     "url": "^0.11.0",
-    "xlsx": "^0.16.8"
+    "xlsx": "^0.16.8",
+    "bcrypt": "^3.0.6",
+    "ejs": "^2.6.2",
+    "express-flash": "0.0.2",
+    "express-session": "^1.16.2",
+    "method-override": "^3.0.0",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
+    "dotenv": "^8.0.0",
+    "nodemon": "^1.19.1"
   }
 }

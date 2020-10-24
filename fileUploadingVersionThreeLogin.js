@@ -12,11 +12,12 @@ var url = require('url');
 const path = require('path');
 const download = require("download");
 var ROOT = __dirname + "/downloads";
-const bcrypt = require('bcrypt')
-const passport = require('passport')
-const flash = require('express-flash')
-const session = require('express-session')
-const methodOverride = require('method-override')
+const bcrypt = require('bcrypt');
+const passport = require('passport');
+const flash = require('express-flash');
+const xlsx = require("xlsx");
+const session = require('express-session');
+const methodOverride = require('method-override');
 
 /**
  * After start the server - you can download the file with using this url:
@@ -37,7 +38,8 @@ initializePassport(
     id => users.find(user => user.id === id)
 )
 
-const users = []
+const users = [];
+var pathToFile;
 
 app.set('view-engine', 'ejs')
 app.use(express.urlencoded({ extended: false }))
@@ -96,25 +98,72 @@ app.use(upload());
  * The middleware is anything that contains request and responce
  */
 app.get('/', checkAuthenticated, (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+    res.sendFile(__dirname + '/views/index.html');
 });
 
 app.post('/', (req, res) => {
     if(req.files){
         console.log(req.files);
         let file = req.files.file;
-        let filename = file.name;
-        console.log(filename);
+        let fileName = file.name;
+        /**
+         * С помощью const/var (я еще не понял как это сделать)
+         *нам нужно будет установить это как глобальную переменную которая будет указывать на
+         * файл который мы загрузили. Переменная будет выглядеть как-то так:
+         let pathToFile = file.path;
+         * Переменная будет нужна нам чтобы выбрать этот путь к файлу и отдать его в запросе fileUploaded
 
-        file.mv('./uploads/'+filename, function (err) {
+         */
+
+        console.log(fileName);
+
+        file.mv('./uploads/'+fileName, function (err) {
             if (err) {
                 res.send(err);
             } else {
-                res.send("File Uploaded");
+                res.redirect('/fileUploaded');
+
+
+
+                /**
+                 res.sendFile(__dirname + '/views/fileUploaded.html');
+                  //  res.sendFile(__dirname + '/excelAutomation.js');
+                это вероятно как-то с помощью callback нужно будет сделать - или EVENT LISTENER
+                 и указать на excelAutomation.js
+                 * TODO: В fileUploaded.html необходимо указать на excelAutomation.js
+                 * который возьмет наш файл и обработает и в downloads положит другой файл.
+                 */
             }
         });
     }
 });
+
+app.get('/fileUploaded', (req, res) =>{
+    res.sendFile(__dirname + '/views/fileUploaded.html');
+})
+
+app.post('/fileUploaded', (req, res) =>{
+    //let pathToFile = (__dirname+'/uploads' + '/excelAutomation.js');
+    let pathToFile = path.join(__dirname+'/uploads'+'/excelAutomation.xlsx');
+
+    console.log("I am in POST request 'fileUploaded'");
+
+    /**
+     * Связь между кнопкой отправки лежит в методе "app.post" и в html
+     * лежит <form method="POST" action="/fileUploaded" enctype="multipart/form-data"> - form method
+     * и action - fileUploaded
+     */
+    workOnFile(pathToFile, res);
+})
+
+app.get('/downloadNewFile', (req, res) =>{
+    //let pathToFile = (__dirname+'/uploads' + '/excelAutomation.js');
+    let pathToFile = path.join(__dirname+'/uploads'+'/excelAutomation.xlsx');
+
+    console.log("I am in GET request '/downloadNewFile'");
+
+    sendFileSafe(pathToFile, res);
+})
 
 app.get('/login', checkNotAuthenticated, (req, res) => {
     res.render('login.ejs')
@@ -143,8 +192,10 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
     } catch {
         res.redirect('/register')
     }
-    console.log(users);/*I have placed it there to just have fun seeing in realtime
-   what have come to the array*/
+    console.log(users);
+    /**
+     *This method shows us in console that password will already be hashed. And user name with user email will not be hashed.
+    */
 })
 
 app.delete('/logout', (req, res) => {
@@ -154,18 +205,25 @@ app.delete('/logout', (req, res) => {
 /**
  * This "every request (*)" realization is only for download files from uploads folder.
  * More of code documentation and explanation comments of this method is in fileDownload2.js file!
+
+ *So this function allow to simply download files whatever you want in this project
  */
 app.get('*', (req, res) => {
+    /**
+     * Code with checkAccess will be temporary disabled until I will find the way use it with login and with my whole project
+     * so it's not needed for now to send secret in url
+     */
+    /*
     if(!checkAccess(req)) {
         res.statusCode = 403;
         res.end("Tell me the secret to access!");
         return;
-    }
+    }*/
     sendFileSafe(url.parse(req.url).pathname, res);
 });
 
 app.get('/downloadFiles', (req, res) => {
-    res.sendFile(__dirname + '/downloadFiles.html');
+    res.sendFile(__dirname + 'views/downloadFiles.html');
 
         if(res.files){
             console.log(res.files);
@@ -230,6 +288,43 @@ function sendFile(filePath, res){
         var mime = require('mime').lookup(filePath);
         res.setHeader('Content-Type', mime + "; charset=utf-8");
         res.end(content);
+    });
+}
+
+function workOnFile(pathToFile, res){
+    /**
+     * В этой функции нам нужно указать на excelAutomation.js в который передать вот этот вот файл.
+     */
+    fs.readFile(pathToFile, function(err, content){
+        if (err) {
+            throw err;
+        } else {
+            res.sendFile(__dirname + '/views/fileWorked.html');
+
+
+
+
+            let wb = xlsx.readFile(pathToFile, {cellDates:true});
+            let ws = wb.Sheets["Main Sheet"];
+            var data = xlsx.utils.sheet_to_json(ws);
+            var newData = data.map(function(record){
+                var net = record.Sales - record.Cost;
+                record.Net = net;
+                delete record.Sales;
+                delete record.Cost;
+                return record;
+            });
+
+
+            var newWB = xlsx.utils.book_new();
+
+            var newWS = xlsx.utils.json_to_sheet(newData);
+            xlsx.utils.book_append_sheet(newWB,newWS,"New Data");
+
+            xlsx.writeFile(newWB, "./downloads/newDataFile.xlsx");
+
+            console.log(wb.SheetNames);
+            }
     });
 }
 

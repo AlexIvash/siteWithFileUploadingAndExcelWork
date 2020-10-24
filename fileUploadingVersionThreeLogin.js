@@ -122,16 +122,8 @@ app.post('/', (req, res) => {
                 res.send(err);
             } else {
                 res.redirect('/fileUploaded');
-
-
-
                 /**
-                 res.sendFile(__dirname + '/views/fileUploaded.html');
-                  //  res.sendFile(__dirname + '/excelAutomation.js');
-                это вероятно как-то с помощью callback нужно будет сделать - или EVENT LISTENER
-                 и указать на excelAutomation.js
-                 * TODO: В fileUploaded.html необходимо указать на excelAutomation.js
-                 * который возьмет наш файл и обработает и в downloads положит другой файл.
+                 * TODO: После того как File перемещен командой mv - мы должны сразу взять и загрузить его в базу данных MySql
                  */
             }
         });
@@ -142,8 +134,12 @@ app.get('/fileUploaded', (req, res) =>{
     res.sendFile(__dirname + '/views/fileUploaded.html');
 })
 
+/**
+ * В этой функции мы берем наш файл и обрабатываем его.
+ * Файл пока только один и он захардкожен. Чтобы обработать другой файл - последние столбцы в нем
+ * должны называться так же как называются здесь (check workOnFile please)
+ */
 app.post('/fileUploaded', (req, res) =>{
-    //let pathToFile = (__dirname+'/uploads' + '/excelAutomation.js');
     let pathToFile = path.join(__dirname+'/uploads'+'/excelAutomation.xlsx');
 
     console.log("I am in POST request 'fileUploaded'");
@@ -157,12 +153,14 @@ app.post('/fileUploaded', (req, res) =>{
 })
 
 app.get('/downloadNewFile', (req, res) =>{
-    //let pathToFile = (__dirname+'/uploads' + '/excelAutomation.js');
-    let pathToFile = path.join(__dirname+'/uploads'+'/excelAutomation.xlsx');
+    /**
+     * TODO: Когда мы отправляем File - мы должны взять его не из  папки проекта, а из базы данных MySql
+     */
+    let pathToFile = path.join(__dirname+'/downloads'+'/newDataFile.xlsx');
 
     console.log("I am in GET request '/downloadNewFile'");
 
-    sendFileSafe(pathToFile, res);
+    sendFile(pathToFile, res);
 })
 
 app.get('/login', checkNotAuthenticated, (req, res) => {
@@ -179,6 +177,9 @@ app.get('/register', checkNotAuthenticated, (req, res) => {
     res.render('register.ejs')
 })
 
+/**
+ * TODO: после регистрации логин, хэш пароль и email пользователя мы должны ложить в базу данных
+ */
 app.post('/register', checkNotAuthenticated, async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10)
@@ -198,15 +199,22 @@ app.post('/register', checkNotAuthenticated, async (req, res) => {
     */
 })
 
+/**
+ * Delete функция выполняет logout
+ */
 app.delete('/logout', (req, res) => {
     req.logOut()
     res.redirect('/login')
 })
+
 /**
  * This "every request (*)" realization is only for download files from uploads folder.
  * More of code documentation and explanation comments of this method is in fileDownload2.js file!
 
  *So this function allow to simply download files whatever you want in this project
+
+ * TODO: File который отправляется мы должны взять из базы данных MySql
+
  */
 app.get('*', (req, res) => {
     /**
@@ -222,6 +230,9 @@ app.get('*', (req, res) => {
     sendFileSafe(url.parse(req.url).pathname, res);
 });
 
+/**
+ * TODO: File который отправляем мы должны взять из базы данных MySql
+ */
 app.get('/downloadFiles', (req, res) => {
     res.sendFile(__dirname + 'views/downloadFiles.html');
 
@@ -284,7 +295,10 @@ function sendFileSafe(filePath, res){
 function sendFile(filePath, res){
     fs.readFile(filePath, function(err, content){
         if (err) throw err;
-
+        /**
+         * The ultimate javascript content-type utility. lookup - переводится как "просмотр".
+         * То есть можно просмотреть контент который мы указываем.
+         */
         var mime = require('mime').lookup(filePath);
         res.setHeader('Content-Type', mime + "; charset=utf-8");
         res.end(content);

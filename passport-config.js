@@ -1,6 +1,6 @@
 /**
- * This file imported from my project node-js-passport-login.
- * It will be used here with fileUploadingVersionThreeLogin.js
+ * This file I took from my project node-js-passport-login.
+ * It will be used here with fileUploadingVersionThreeLogin.js and fileUploadingVersionThreeLoginWithSQL.js
  */
 
 

@@ -18,6 +18,7 @@ const flash = require('express-flash');
 const xlsx = require("xlsx");
 const session = require('express-session');
 const methodOverride = require('method-override');
+const mysql = require('mysql2');
 
 /**
  * After start the server - you can download the file with using this url:
@@ -29,16 +30,41 @@ const methodOverride = require('method-override');
  * @type {*|Express}
  */
 const app = express();
+var userEmail = () =>{
+    connection.query('SELECT email FROM credentials WHERE id = 7');
+}
+
+var userPassword = connection.query('SELECT password FROM credentials WHERE id = 7');
 
 
-const initializePassport = require('./passport-config')
+/**
+ВОТ ЗДЕСЬ ДЛЯ ЛОГИНА МЫ ДАЕМ ДАННЫЕ EMAIL, PASSWORD
+ */
+const initializePassport = require('./passport-configWithSQL')
 initializePassport(
     passport,
-    email => users.find(user => user.email === email),
-    id => users.find(user => user.id === id)
+    userEmail,
+    userPassword
 )
 
-const users = [];
+
+
+
+const connection = mysql.createConnection({
+    host:'localhost',
+    user:'root',
+    password:'password',
+    database:'users'
+});
+
+try {
+    connection.connect();
+} catch(e) {
+    console.log('Oops.Connection to MySql failed.');
+    console.log(e);
+}
+
+//const users = [];
 var pathToFile;
 
 app.set('view-engine', 'ejs')
@@ -124,6 +150,27 @@ app.post('/', (req, res) => {
                 res.redirect('/fileUploaded');
                 /**
                  * TODO: После того как File перемещен командой mv - мы должны сразу взять и загрузить его в базу данных MySql
+                 connection.query('INSERT INTO tasks (description) VALUES (?)', [req.body.item], (error, results)=>{
+    if (error) return res.json({error: error});
+
+    connection.query ('SELECT LAST_INSERT_ID() FROM tasks', (error, results) => {
+        if (error) return res.json({error: error});
+
+
+
+        res.json({
+
+                id: results[0]['LAST_INSERT_ID()'],
+                description: req.body.item
+            });
+    });
+});
+                 А если такой файл уже есть - тогда мы должны не добавлять его, а апдейтить
+                 connection.query('UPDATE tasks SET completed = ? WHERE id = ?', [req.body.completed, req.params.id], (error, results) =>{
+        if (error) return res.json({error: error});
+
+        res.json({});
+    });
                  */
             }
         });
@@ -154,7 +201,12 @@ app.post('/fileUploaded', (req, res) =>{
 
 app.get('/downloadNewFile', (req, res) =>{
     /**
-     * TODO: Когда мы отправляем File - мы должны взять его не из  папки проекта, а из базы данных MySql
+     * TODO: Когда мы отправляем File пользователю - мы должны взять его не из папки проекта, а из базы данных MySql
+     * connection.query('SELECT * FROM tasks ORDER BY created DESC', (error, results) => {
+
+        if (error) return res.json({error: error});
+        res.json(results);
+    });
      */
     let pathToFile = path.join(__dirname+'/downloads'+'/newDataFile.xlsx');
 
@@ -181,29 +233,40 @@ app.get('/register', checkNotAuthenticated, (req, res) => {
 })
 
 /**
- * TODO: после регистрации логин, хэш пароль и email пользователя мы должны ложить в базу данных
+После регистрации поля из запроса - username, hashed "password" и email пользователя попадают в базу данных
  */
 app.post('/register', checkNotAuthenticated, async (req, res) => {
-    try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10)
-        users.push({
-            id: Date.now().toString(),
-            name: req.body.name,
-            email: req.body.email,
-            password: hashedPassword
-        })
-        res.redirect('/login')
-    } catch {
-        res.redirect('/register')
-    }
-    console.log(users);
+       const hashedPassword = await bcrypt.hash(req.body.password, 10);
+       var credentials ={
+           username: req.body.name,
+           email: req.body.email,
+           password: hashedPassword
+       }
+
+        connection.query('INSERT INTO credentials SET ?',credentials, function (error, results, fields) {
+            if (error) {
+                console.log("error ocurred ",error);
+                res.redirect('/register')
+            } else {
+                console.log('Results of entered data: ', results);
+                res.redirect('/login');
+            }
+        });
+
     /**
      *This method shows us in console that password will already be hashed. And user name with user email will not be hashed.
-    */
+     */
+   console.log(credentials);
 })
 
 /**
  * Delete функция выполняет logout
+ TODO: Если бы пользователь удалялся то для этого можно было-бы использовать удаление из базы данных
+ connection.query('DELETE FROM tasks WHERE id = ?', [req.params.id], (error,results) =>{
+        if (error) return res.json({error: error});
+
+        res.json({});
+    });
  */
 app.delete('/logout', (req, res) => {
     req.logOut()

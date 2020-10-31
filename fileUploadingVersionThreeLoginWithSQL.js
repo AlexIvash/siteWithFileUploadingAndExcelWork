@@ -19,7 +19,7 @@ const xlsx = require("xlsx");
 const session = require('express-session');
 const methodOverride = require('method-override');
 const mysql = require('mysql2');
-
+//const mysql = require('mysql2/promise');
 /**
  * After start the server - you can download the file with using this url:
  * http://localhost:3000/newDataFile.xlsx?secret=o_O
@@ -32,12 +32,9 @@ const mysql = require('mysql2');
 const app = express();
 
 
-const initializePassport = require('./passport-config')
-initializePassport(
-    passport,
-    email => users.find(user => user.email === email),
-    id => users.find(user => user.id === id)
-)
+/**
+ВОТ ЗДЕСЬ ДЛЯ ЛОГИНА МЫ ДАЕМ ДАННЫЕ EMAIL, PASSWORD
+ */
 
 const connection = mysql.createConnection({
     host:'localhost',
@@ -52,8 +49,71 @@ try {
     console.log('Oops.Connection to MySql failed.');
     console.log(e);
 }
+ /*var userPassword = connection.query('SELECT password FROM credentials WHERE id = 7', (error, results) => {
+    if (error) {
+        console.log(error);
+    } else {
+       /* var userPassword = results[0];
+        console.log(userPassword)
+        return userPassword
 
-const users = [];
+ИЛИ такой вариант
+
+var pass = JSON.parse(JSON.stringify(results[0]));
+return pass;*/
+        /**
+         * Лучше не использовать toString так как вместо строки это вернет в нашем случае какой-то объект
+         * return userPassword.toString();
+         *
+         * https://stackoverflow.com/questions/42373879/node-js-get-result-from-mysql-query - в статье написано
+         * что я не могу получить объект за пределами запроса, могу получить его только в пределах запроса и это плохо
+         */
+    //}
+//})
+
+const initializePassport = require('./passport-configWithSQL')
+initializePassport(
+    passport/*,
+    userEmail = email => connection.query('SELECT email FROM credentials WHERE id = 7', (error, results) => {
+        if (error) {
+            console.log(error);
+        } else {
+            var userEmail = results[0];
+            console.log(userEmail);
+            return userEmail;
+        //console.log("I am request results " + results);
+            //эта хрень даже не исполняется. Значит ошибка в том что эта функция даже не выполняется при запросе правильно -
+            // ошибка не в возврате ответа от базы данных а в том что мы неправильно решили записать этот запрос. Это все правильно было-бы
+            //обернуть в дополнительную функцию
+    }
+    }),
+    userPassword = password => {connection.query('SELECT password FROM credentials WHERE id = 7', (error, results) => {
+        if (error)
+        {
+            console.log(error);
+        } else {
+            var userPassword = results[0];
+            console.log(userPassword)
+            return userPassword;
+            //console.log("I am request results " + results);
+            //эта хрень даже не исполняется. Значит ошибка в том что эта функция даже не выполняется при запросе правильно -
+            // ошибка не в возврате ответа от базы данных а в том что мы неправильно решили записать этот запрос. Это все правильно было-бы
+            //обернуть в дополнительную функцию
+
+
+            //можно конечно добавить результат в массив и при логине брать данные из массива - но вроде-бы это не очень вариант
+            //второй вариант - это кардинально новый подход с реализацией авторизации через post login...
+        }
+    })}
+
+    //connection.query('SELECT password FROM credentials WHERE id = 7')
+    //userPassword*/
+)
+
+
+
+
+//const users = [];
 var pathToFile;
 
 app.set('view-engine', 'ejs')
@@ -407,6 +467,7 @@ function checkAuthenticated(req, res, next) {
 /**
  *Этот callback поставлен здесь, чтобы если юзер не аутентифицирован - тогда ему открывается login.
  * А если он уже был аутентифицирован - тогда /login будет ему не доступен
+ * Я думаю что req.isAuthenticated каким-то образом связан с done функцией которая возвращает пользователя, если такой есть
  */
 function checkNotAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {

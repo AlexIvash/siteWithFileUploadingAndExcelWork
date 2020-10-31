@@ -1,24 +1,41 @@
 /**
  * This file I took from my project node-js-passport-login.
- * It will be used here with fileUploadingVersionThreeLogin.js and fileUploadingVersionThreeLoginWithSQL.js
+ * It will be used here with fileUploadingVersionThreeLogin.js
  */
 
 
 const LocalStrategy = require('passport-local').Strategy
 const bcrypt = require('bcrypt')
-
+// by default, local strategy uses username and password, we will override with email
 function initialize(passport, getUserByEmail, getUserById) {
   const authenticateUser = async (email, password, done) => {
+
+    /**
+     * This is to check which userPassword do we use to log in to the app. But actually - there is function which come there
+     * And this is okay because it's work
+     */
+    console.log(getUserByEmail);
+
     const user = getUserByEmail(email)
     /**
+     * Как вообще происходит вызов passport-config при использовании приложения. При каждом запросе срабатывает app.use(passport.initialize())
+     И
+     const initializePassport = require('./passport-configWithSQL')
+     initializePassport(
+     passport,
+     email => users.find(user => user.email === email), (this is get user be email)
+     id => users.find(user => user.id === id) (this is get user by id)
+     )
+     *
+     *
      * if user hasn't been found in the users array(array imitate DataBase) by his email - this user doesn't exist in the "DataBase".
      * Done - is a function that we call when we will authenticate user (successfully for user or not. In this
      * function done will return or user email or done with error message
 
      * The first argument for done function is error which we can recieve there.
      * As far as now we don't have an error - we will
-     * pass "null" there. The second parameter - is in our case "user we found there (taken from users massive
-     * which was given to this method in arguments(method has been called from passport-config)", third parameter
+     * pass "null" there. The second parameter - is in our case "user" we found there (taken from users massive
+     * which was given to this method in arguments(method has been called from passport-config)), third parameter
      * is message which will be exposed on the page if we didn't find that user(message with which this function
      * will be ended and message which will be returned.).
      */
@@ -42,6 +59,7 @@ function initialize(passport, getUserByEmail, getUserById) {
        * bcrypt.compare can compate even simple not hashed data with hashed data.
        */
       if (await bcrypt.compare(password, user.password)) {
+        console.log("I compare here password from POST request " + password +" and password from array which imitate database " + user.password);
         return done(null, user)
       } else {
         return done(null, false, { message: 'Password incorrect' })
@@ -73,6 +91,7 @@ function initialize(passport, getUserByEmail, getUserById) {
    *  В passport.use localstrategy можно так же передавать и логин и пароль в JSON
    *  формате и они сравниваются с логином и паролем из бд(но так как у нас как бэ сравнивание хэшированных
    *  данных - мы его проводим в другой функции и реализуем так как я описал).
+   *  Мы не можем { usernameField: 'email' } убрать потому что это поле - это как раз то поле которое мы считываем с поля ввода при логине и регистрации
    */
   passport.use(new LocalStrategy({ usernameField: 'email' }, authenticateUser))
 
@@ -80,6 +99,13 @@ function initialize(passport, getUserByEmail, getUserById) {
    * This function makes serializing - which means "to store in one(during one) session"
    * For make this whole system work - we need to open this session and to call the done function
    * with arguments of user.id which use login method now.
+   *
+   *
+   * // =========================================================================
+   // passport session setup ==================================================
+   // =========================================================================
+   // required for persistent login sessions
+   // passport needs ability to serialize and unserialize users out of session
    */
   passport.serializeUser((user, done) => done(null, user.id))
 

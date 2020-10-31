@@ -42,7 +42,7 @@ Problem solving with starting app (related to mysql.server has not been started)
 
 2) РЕШЕНИЕ!!!
 1.Запустить mysql командой(Нужно запустить MySql командой в отдельном терминале и потом запускать приложение через node appName.js):
-  mysql.server start
+  mysql.server start (PLEASE PAY ATTENTION TO HOW IT WROTE )
 2. приконектится к базе данных, используя:
    sudo mysql -u root -p
    Ввести пароль "MAC"(запуск super user)

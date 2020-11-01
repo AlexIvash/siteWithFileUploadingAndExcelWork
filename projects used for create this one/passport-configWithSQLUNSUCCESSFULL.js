@@ -49,9 +49,43 @@ function initialize(passport) {
           throw error;
         }
         try {
-          var data = result[0].password;
+          //console.log(result);
+         // return data(result);
+          //console.log("Data from database" + data[0].split(' '));
+          //console.log("I am data" + data);
+          //return JSON.parse(JSON.stringify(data(result)));
+          //console.log(JSON.parse(JSON.stringify(data(result))))
+         // console.log(JSON.parse(JSON.stringify(data(result))))
+          //console.log(JSON.stringify(data(result)))
+          //console.log(data(result));
+//          console.log(data({result}));
+
+          /**
+           * Вот здесь пошли более адекватные варианты - что можно сделать с результатами отсюда
+
+
+          //var info = {result};
+         // var info = result;
+          //console.log({info}.split(' '));
+          console.log({result});
+          console.log(result);
+          console.log(result[0]);//этот самый корректный вариант чтобы распарсить
+          //отсюда нужно его вытянуть из json формата.
+          console.log(result[0].toString());
+          //console.log(result[0].toString().split(' '));
+           var info = result[0].toString().split(' ');
+           console.log(info[1]);//Выводит "Object]"
+
+           var info2 = info[1].split(']');
+           console.log(info2[0]); //Выводит "Object"
+           //console.log(result.password);
+           //return done(null, result[0]);
+           //return info2[0];//это все равно не работает
+           //
+           */
           console.log(result[0].password);
           return result[0].password;
+
         } catch (error) {
           data({});
           throw error;

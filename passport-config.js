@@ -56,7 +56,7 @@ function initialize(passport, getUserByEmail, getUserById) {
        * will be used block "else" where no user will be returned. Instead will be
        * returned message 'Password incorrect' which user will see in the browser on "/login" link.
 
-       * bcrypt.compare can compate even simple not hashed data with hashed data.
+       * bcrypt.compare can compare even simple not hashed data with hashed data.
        */
       if (await bcrypt.compare(password, user.password)) {
         console.log("I compare here password from POST request " + password +" and password from array which imitate database " + user.password);

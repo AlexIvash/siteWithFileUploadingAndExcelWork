@@ -49,18 +49,21 @@ try {
     console.log('Oops.Connection to MySql failed.');
     console.log(e);
 }
- /*var userPassword = connection.query('SELECT password FROM credentials WHERE id = 7', (error, results) => {
-    if (error) {
-        console.log(error);
-    } else {
-       /* var userPassword = results[0];
-        console.log(userPassword)
-        return userPassword
+ /*
+ var userPassword = connection.query('SELECT password FROM credentials WHERE id = 7', (error, results) => {
+ OR
+   databaseUserPassword = connectionQueryPassword('SELECT password FROM credentials WHERE id = 7', (error, results) => {
+        if (error) {
+            console.log(error);
+        } else {
+            var userPassword = results[0].password;
+            console.log(userPassword)
+            return userPassword;
+        }
+    }
+))
 
-ИЛИ такой вариант
-
-var pass = JSON.parse(JSON.stringify(results[0]));
-return pass;*/
+*/
         /**
          * Лучше не использовать toString так как вместо строки это вернет в нашем случае какой-то объект
          * return userPassword.toString();
@@ -68,13 +71,31 @@ return pass;*/
          * https://stackoverflow.com/questions/42373879/node-js-get-result-from-mysql-query - в статье написано
          * что я не могу получить объект за пределами запроса, могу получить его только в пределах запроса и это плохо
          */
-    //}
-//})
+
 
 const initializePassport = require('./passport-configWithSQL')
 initializePassport(
-    passport/*,
-    userEmail = email => connection.query('SELECT email FROM credentials WHERE id = 7', (error, results) => {
+    passport,
+    databaseUserEmail = connectionQueryEmail('SELECT email FROM credentials WHERE id = 7'),
+    databaseUserPassword = connectionQueryPassword('SELECT password FROM credentials WHERE id = 7'))
+     //можно конечно добавить запись из бд в массив и считать оттуда как это было раньше - но это ведь 1) Неправильно 2) тоже самое что и присвоить значение
+     //обычной переменной?
+     /*.then(function(){
+             //this function will be called if previous function "connectionQueryPassword" successfully done
+     //console.log("Then function was successfully launched")*/
+
+    //databaseUserPassword = getUserPassword())
+    //databaseUserPassword = Promise.resolve(getUserPassword()))
+   /* userPassword => async function getUserPassword() {
+        return result = await dbQuery('SELECT password FROM credentials WHERE id = 7');
+    })*/
+
+
+
+
+
+/*Так это было ДО
+userEmail = email => connection.query('SELECT email FROM credentials WHERE id = 7', (error, results) => {
         if (error) {
             console.log(error);
         } else {
@@ -87,28 +108,20 @@ initializePassport(
             //обернуть в дополнительную функцию
     }
     }),
-    userPassword = password => {connection.query('SELECT password FROM credentials WHERE id = 7', (error, results) => {
-        if (error)
-        {
-            console.log(error);
-        } else {
-            var userPassword = results[0];
-            console.log(userPassword)
-            return userPassword;
-            //console.log("I am request results " + results);
-            //эта хрень даже не исполняется. Значит ошибка в том что эта функция даже не выполняется при запросе правильно -
-            // ошибка не в возврате ответа от базы данных а в том что мы неправильно решили записать этот запрос. Это все правильно было-бы
-            //обернуть в дополнительную функцию
+    function databaseUserPassword(){
+           connection.query('SELECT password FROM credentials WHERE id = 7', (error, result) => {
+               let data = result[0].password;
+               console.log(data);
+               return data;
+       }
+           )}
 
 
-            //можно конечно добавить результат в массив и при логине брать данные из массива - но вроде-бы это не очень вариант
-            //второй вариант - это кардинально новый подход с реализацией авторизации через post login...
-        }
-    })}
+           НО - обычные callback функции возвращали не пароль а сами себя и это было невозможно обойти как-то кроме промисов. Потому решено
+           было использовать промисы
+*/
 
-    //connection.query('SELECT password FROM credentials WHERE id = 7')
-    //userPassword*/
-)
+
 
 
 
@@ -475,3 +488,125 @@ function checkNotAuthenticated(req, res, next) {
     }
     next()
 }
+
+/**
+ *Эта функция МОГЛА БЫ БЫТЬ универсальна для любых запросов в базу данных, включая
+ * getUserEmail , getUserPassword ЕСЛИ БЫ НЕ result[0].password - в ней указано что именно вернуть
+ * так что придется иметь две разные функции. К сожалению передавать эти данные через параметры функции я пока не научился в node js
+ *
+ * https://stackoverflow.com/questions/42373879/node-js-get-result-from-mysql-query - найдено здесь
+ */
+
+
+async function connectionQueryPassword(databaseQuery) {
+    return new Promise(function(resolve, reject) {
+        // The Promise constructor should catch any errors thrown on
+        // this tick. Alternately, try/catch and reject(err) on catch.
+
+        /*
+        Это возможно будет доступно для использования с запросами по конкретному email - но я не буду
+        это реализовывать сейчас
+        var query_str =
+            "SELECT name, " +
+            "FROM records " +
+            "WHERE (name = ?) " +
+            "LIMIT 1 ";
+
+        var query_var = [password];
+        connection.query(query_str, query_var, function (err, rows, fields) {
+*/
+        connection.query(databaseQuery, function (err, rows, fields) {
+            // Call reject on error states,
+            // call resolve with results
+            if (err) {
+                return reject(err);
+            }
+            resolve(rows[0].password);
+            console.log("There is data base data "+ rows[0].password);
+        });
+    });
+}
+/*Я думал что это плохой запрос - НО НЕТ!! НА САМОМ ДЕЛЕ ОН ТОЖЕ ХОРОШ КАК И ПРЕДЫДУЩИЙ.
+Но оба одинаково плохо работают с bcrypt.compare - так что может дело все же в самой функции bcrypt?
+Эти два запроса можно было бы совместить в один если бы тут еще выполнялся запрос с данными про конкретный email
+пользователя
+
+
+
+async function connectionQueryPassword(databaseQuery) {
+     return new Promise(data => {
+        connection.query(databaseQuery, function (error, result) {
+            if (error) {
+                console.log(error);
+                throw error;
+            }
+            try {
+                data(result[0].password);
+                let pass = result[0].password;
+                resolve(pass);
+               /* let data = result[0].password;
+               console.log(data);
+                return data;Я думаю что это лишнее потому что data - executor
+                и видимо он запишет данные в результат*/
+/*
+            } catch (error) {
+                data({});
+                throw error;
+                console.log("Error happened during request to DATABASE")
+            }
+        });
+    }).then(
+        function(){
+         /*this function will be called if previous function "connectionQueryPassword" successfully done
+            Эта функция будет выполняться только если вначале стоит " let promise = Promise.resolve(data => {"
+
+            НО - если стоит вначале "return new Promise(data => {" - тогда первой срабатывает функция которая выведет
+          console.log хэшированный пароль из базы данных - ХОТЯЯ ошибка - если сюда добавить catch то это не играет роли*/
+/*
+         console.log("Then function was successfully launched")}).catch((err) => setImmediate(() => { throw err; }));
+}*/
+
+async function connectionQueryEmail(databaseQuery) {
+    return new Promise(data => {
+        connection.query(databaseQuery, function (error, result) {
+            if (error) {
+                console.log(error);
+                throw error;
+            }
+            try {
+                let data = result[0].email;
+                console.log(data);
+                return data;
+            } catch (error) {
+                data({});
+                throw error;
+                console.log("Error happened during request to DATABASE")
+            }
+        });
+    });
+}
+
+
+/** нерабочий вариант
+ * async function connectionQueryPassword(databaseQuery) {
+    //return new Promise(data => {
+    let promise = Promise.resolve(
+        connection.query(databaseQuery, function (error, result) {
+            if (error) {
+                console.log(error);
+                throw error;
+            }
+            try {
+                let data = result[0].password;
+                console.log(data);
+                return data;
+            } catch (error) {
+                data({});
+                throw error;
+                console.log("Error happened during request to DATABASE")
+            }
+        })
+    )
+    return promise;
+}
+ */

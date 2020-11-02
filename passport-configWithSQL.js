@@ -2,7 +2,7 @@
  * This file I took from my project node-js-passport-login.
  * It will be used here with fileUploadingVersionThreeLoginWithSQL.js
  */
-/*
+
 const mysql = require('mysql2');
 
 const connection = mysql.createConnection({
@@ -18,7 +18,7 @@ try {
   console.log('Oops.Connection to MySql failed.');
   console.log(e);
 }
-*/
+
 
 const LocalStrategy = require('passport-local').Strategy
 const bcrypt = require('bcrypt')
@@ -91,10 +91,13 @@ function initialize(passport, databaseUserEmail, databaseUserPassword) {
       var pass2 = getUserPassword();
       console.log("I am pass2" + pass2)*/
        //if (await bcrypt.compare(password, getUserPassword)) {
-      let userPassword = databaseUserPassword.toString();
+      //let userPassword = databaseUserPassword.toString();
+      let userPassword = databaseUserPassword;
+     // let userPassword2 = 'SELECT password FROM credentials WHERE id = 7';
       console.log("I am user password from fileUploading " + userPassword);
       //в bcrypt третьим коллбэком можно кстати разместить callback-функцию https://www.npmjs.com/package/bcrypt
-         if (await bcrypt.compare(password, userPassword)) {
+         if (await bcrypt.compare(password, userPassword))
+       {
            console.log("I am user password from fileUploading which is from database " + databaseUserPassword);
         // console.log("I am password from database" + getUserPassword);
          console.log("Compare password from POST request and database was successfull");
@@ -106,6 +109,21 @@ function initialize(passport, databaseUserEmail, databaseUserPassword) {
       return done(e)
     }
   }
+
+
+    //if (await bcrypt.compare(password, userPassword2, connection.query('SELECT password FROM credentials WHERE id = 7', function (err, rows, fields) {
+    /* if (await bcrypt.compare(password, connection.query('SELECT password FROM credentials WHERE id = 7', function (err, rows, fields) {
+           // Call reject on error states,
+           // call resolve with results
+           if (err) {
+             return reject(err);
+           }
+           return (rows[0].password);
+           console.log("There is data base data in bcrypt "+ rows[0].password);
+         })
+     ))*/
+
+
   /**
    * Мы не можем { usernameField: 'email' } убрать потому что это поле - это как раз то поле которое мы считываем с поля ввода при логине и регистрации
    * authenticateUser - это функция которая в этом мануале ( http://www.passportjs.org/docs/username-password/ ) заменяет обычную переданную в аргументах функцию

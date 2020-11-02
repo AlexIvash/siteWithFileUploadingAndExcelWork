@@ -26,20 +26,8 @@ const bcrypt = require('bcrypt')
 function initialize(passport, databaseUserEmail, databaseUserPassword) {
 
 
-  /**
-   * dbQuery - it's not something specific - it's jut my way to implement this function with the promise (it's the only way to implement this
-   * type of requests via promise
-   * but db.query - is something more specific
-   * Found there - https://stackoverflow.com/questions/42373879/node-js-get-result-from-mysql-query
-   */
-
-
 
   const authenticateUser = async (email, password, done) => {
-    /**
-     * console.log размещенный здесь говорит нам о том что пароль который прилетает к нам из поля прилетает корректным.
-     * Тогда если выдает ошибку что password incorrect - вероятно проблемы со сравниваем паролей? Хотя в login.js это работало неплохо
-     */
     console.log("I am password entered in field " + password);
 
     const user = databaseUserEmail;
@@ -91,6 +79,19 @@ function initialize(passport, databaseUserEmail, databaseUserPassword) {
 
        */
 
+
+
+      //if (await bcrypt.compare(password, userPassword2, connection.query('SELECT password FROM credentials WHERE id = 7', function (err, rows, fields) {
+      /* if (await bcrypt.compare(password, connection.query('SELECT password FROM credentials WHERE id = 7', function (err, rows, fields) {
+             // Call reject on error states,
+             // call resolve with results
+             if (err) {
+               return reject(err);
+             }
+             return (rows[0].password);
+             console.log("There is data base data in bcrypt "+ rows[0].password);
+           })
+       ))*/
 
       if (await bcrypt.compare(password, userPassword))
        {

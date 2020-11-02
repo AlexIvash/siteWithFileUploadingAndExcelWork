@@ -16,7 +16,11 @@ function initialize(passport, getUserByEmail, getUserById) {
      */
     console.log(getUserByEmail);
 
+    /**
+     * Эта функция ищет введенный эмэйл в массиве который имитирует базу данных
+     */
     const user = getUserByEmail(email)
+
     /**
      * Как вообще происходит вызов passport-config при использовании приложения. При каждом запросе срабатывает app.use(passport.initialize())
      И

@@ -30,9 +30,12 @@ const mysql = require('mysql2');
  * @type {*|Express}
  */
 const app = express();
+
+
 /**
- Это обычная а не promise версия соединения с mysql БД
+ВОТ ЗДЕСЬ ДЛЯ ЛОГИНА МЫ ДАЕМ ДАННЫЕ EMAIL, PASSWORD
  */
+
 const connection = mysql.createConnection({
     host:'localhost',
     user:'root',
@@ -73,20 +76,9 @@ try {
 const initializePassport = require('./passport-configWithSQL')
 initializePassport(
     passport,
-    databaseUserId = connectionQueryId('SELECT id FROM credentials WHERE id = 7'),
-    //databaseUserEmail => connectionQueryEmail("SELECT email FROM credentials WHERE email = '+ email +'")
-    //databaseUserEmail => connectionQueryEmail("SELECT email FROM credentials WHERE email = '?'")
-//databaseUserEmail => connectionQueryEmail("SELECT email FROM credentials WHERE email = ?")
-//databaseUserEmail => connectionQueryEmail("SELECT email FROM credentials WHERE 'email' = 'test@com'")
-    //databaseUserEmail => connectionQueryEmail("SELECT email FROM 'credentials' WHERE 'email'?")
-    /*databaseUserEmail= (function(email){
-        connectionQueryEmail("SELECT email FROM credentials WHERE email = ?")
-    })*/
+    databaseUserEmail = connectionQueryData('SELECT id, email, username, reg_date, password FROM credentials WHERE id = 7'))
 
-//databaseUserEmail = await (connectionQueryEmail("SELECT email FROM credentials WHERE email = ?"))
-    email => connectionQueryEmail("SELECT email FROM credentials WHERE email = ?", user=> email.email === email)
-    )
-//connection.query(databaseQuery, function (error, result) {
+var pathToFile;
 
 app.set('view-engine', 'ejs')
 app.use(express.urlencoded({ extended: false }))
@@ -454,59 +446,76 @@ function checkNotAuthenticated(req, res, next) {
  * так что придется иметь две разные функции. К сожалению передавать эти данные через параметры функции я пока не научился в node js
  *
  * https://stackoverflow.com/questions/42373879/node-js-get-result-from-mysql-query - найдено здесь
-
-
- * dbQuery - it's not something specific - it's jut my way to implement this function with the promise (it's the only way to implement this
- * type of requests via promise
- * but db.query - is something more specific
- * Found there - https://stackoverflow.com/questions/42373879/node-js-get-result-from-mysql-query
  */
 
-async function connectionQueryId(databaseQuery) {
-    return new Promise(data => {
+
+async function connectionQueryPassword(databaseQuery) {
+    return new Promise(function(resolve, reject) {
+        // The Promise constructor should catch any errors thrown on
+        // this tick. Alternately, try/catch and reject(err) on catch.
+
+        /*
+        Это возможно будет доступно для использования с запросами по конкретному email - но я не буду
+        это реализовывать сейчас
+        var query_str =
+            "SELECT name, " +
+            "FROM records " +
+            "WHERE (name = ?) " +
+            "LIMIT 1 ";
+
+        var query_var = [password];
+        connection.query(query_str, query_var, function (err, rows, fields) {
+*/
+        connection.query(databaseQuery, function (err, rows, fields) {
+            // Call reject on error states,
+            // call resolve with results
+            if (err) {
+                return reject(err);
+            }
+            resolve(rows[0].password);
+            console.log("There is data base data "+ rows[0].password);
+        });
+    });
+}
+/*Я думал что это плохой запрос - НО НЕТ!! НА САМОМ ДЕЛЕ ОН ТОЖЕ ХОРОШ КАК И ПРЕДЫДУЩИЙ.
+Но оба одинаково плохо работают с bcrypt.compare - так что может дело все же в самой функции bcrypt?
+Эти два запроса можно было бы совместить в один если бы тут еще выполнялся запрос с данными про конкретный email
+пользователя
+
+
+
+async function connectionQueryPassword(databaseQuery) {
+     return new Promise(data => {
         connection.query(databaseQuery, function (error, result) {
             if (error) {
                 console.log(error);
                 throw error;
             }
             try {
-                let userId = result[0].id;
-                return userId;
+                data(result[0].password);
+                let pass = result[0].password;
+                resolve(pass);
+               /* let data = result[0].password;
+               console.log(data);
+                return data;Я думаю что это лишнее потому что data - executor
+                и видимо он запишет данные в результат*/
+/*
             } catch (error) {
-                console.log("Error happened during request to DATABASE");
                 data({});
                 throw error;
+                console.log("Error happened during request to DATABASE")
             }
         });
-    });
-}
+    }).then(
+        function(){
+         /*this function will be called if previous function "connectionQueryPassword" successfully done
+            Эта функция будет выполняться только если вначале стоит " let promise = Promise.resolve(data => {"
 
-async function connectionQueryEmail(databaseQuery, email) {
-    return new Promise(data => {
-        connection.query(databaseQuery, email,function (error, result) {
-            if (error) {
-                console.log(error);
-                throw error;
-            }
-            try {
-                let userEmail = result[0].email;
-                return userEmail;
-            } catch (error) {
-                console.log("Error happened during request to DATABASE");
-                data({});
-                throw error;
-            }
-        });
-    });
-}
-
-/**
- Этот запрос мы возможно будем использовать для получения данных по excel из базы данных
-
- Использовать с этим запросом
-
- databaseUserData = connectionQueryData('SELECT id, email, username, reg_date, password FROM credentials WHERE id = 7')
-
+            НО - если стоит вначале "return new Promise(data => {" - тогда первой срабатывает функция которая выведет
+          console.log хэшированный пароль из базы данных - ХОТЯЯ ошибка - если сюда добавить catch то это не играет роли*/
+/*
+         console.log("Then function was successfully launched")}).catch((err) => setImmediate(() => { throw err; }));
+}*/
 
 async function connectionQueryData(databaseQuery) {
     return new Promise(data => {
@@ -518,21 +527,14 @@ async function connectionQueryData(databaseQuery) {
             try {
                 let userId = result[0].id;
                 let userEmail = result[0].email;
+                let userName = result[0].username;
 
-                //return userId, userEmail;
-                //let userName = result[0].username;
-               // const data = [result[0].id, result[0].email];
-                //return data;
-               // return Promise.resolve([result[0].id, result[0].email])
-
-                //return [userId, userEmail];
-                return {userId: userId, userEmail: userEmail};
+                return userId;
             } catch (error) {
-                console.log("Error happened during request to DATABASE");
                 data({});
                 throw error;
+                console.log("Error happened during request to DATABASE")
             }
         });
     });
 }
- */

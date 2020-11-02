@@ -36,7 +36,7 @@ function initialize(passport, getUserByEmail, getUserById) {
      * Done - is a function that we call when we will authenticate user (successfully for user or not. In this
      * function done will return or user email or done with error message
 
-     * The first argument for done function is error which we can recieve there.
+     * The first argument for done function is error which we can receive there.
      * As far as now we don't have an error - we will
      * pass "null" there. The second parameter - is in our case "user" we found there (taken from users massive
      * which was given to this method in arguments(method has been called from passport-config)), third parameter

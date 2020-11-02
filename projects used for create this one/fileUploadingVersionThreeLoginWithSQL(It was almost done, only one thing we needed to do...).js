@@ -83,11 +83,12 @@ try {
          */
 
 
-const initializePassport = require('./passport-configWithSQL')
+const initializePassport = require('../passport-configWithSQL')
 initializePassport(
     passport,
-    email => connectionQueryId('SELECT id FROM credentials WHERE email = ?', user=> user.email === email),
-    email => connectionQueryEmail("SELECT email, password_hash FROM credentials WHERE email = ?", user=> user.email === email)
+    id => connectionQueryId('SELECT id FROM credentials WHERE id = ?', user=> user.id === id),
+    email => connectionQueryEmail("SELECT email, password_hash FROM credentials WHERE email = ?", user=> user.email === email),
+    email => connectionQueryPassword("SELECT password_hash FROM credentials WHERE email = ?", user=> user.email === email)
     )
 
 app.set('view-engine', 'ejs')
@@ -461,9 +462,9 @@ function checkNotAuthenticated(req, res, next) {
  * Found there - https://stackoverflow.com/questions/42373879/node-js-get-result-from-mysql-query
  */
 
-async function connectionQueryId(databaseQuery, email) {
+async function connectionQueryId(databaseQuery, id) {
     return new Promise(data => {
-        connection.query(databaseQuery, email, function (error, result) {
+        connection.query(databaseQuery, id, function (error, result) {
             if (error) {
                 console.log(error);
                 throw error;
@@ -491,6 +492,25 @@ async function connectionQueryEmail(databaseQuery, email) {
                 let userEmail = result[0].email;
                 let userPassword = result[0].pasword;
                 return [userEmail,userPassword];
+            } catch (error) {
+                console.log("Error happened during request to DATABASE");
+                data({});
+                throw error;
+            }
+        });
+    });
+}
+
+async function connectionQueryPassword(databaseQuery, email) {
+    return new Promise(data => {
+        connection.query(databaseQuery, email,function (error, result) {
+            if (error) {
+                console.log(error);
+                throw error;
+            }
+            try {
+                let userPassword = result[0].pasword;
+                return userPassword;
             } catch (error) {
                 console.log("Error happened during request to DATABASE");
                 data({});

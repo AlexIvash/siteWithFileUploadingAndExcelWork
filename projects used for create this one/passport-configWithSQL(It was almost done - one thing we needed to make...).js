@@ -1,6 +1,7 @@
 /**
- * This file I took from my project node-js-passport-login and I've modificated it there.
- * It will be used here with fileUploadingVersionThreeLoginWithSQL.js
+ What we needed is to find a way to serialize user and for this action we need to DO NOT PLACE bcrypt.compare
+ INSIDE SQL because in other case it does not return user back for serializing
+ Но я хотел чтобы пароль прилетал к нам с другого файла. Но все же это мне не удалось. попытка - здесь
  */
 
 const mysql = require('mysql2');
@@ -23,7 +24,7 @@ const LocalStrategy = require('passport-local').Strategy
 const bcrypt = require('bcrypt')
 /** by default, local strategy use username and password, we will override with email and password
  databaseUserId - email который прилетается к нам из нашей базы данных (запрос в бд написан в promise)*/
-function initialize(passport, databaseUserId, databaseUserEmail) {
+function initialize(passport, databaseUserId, databaseUserEmail, databaseUserHashedPassword) {
 
   /**
    authenticateUser - это функция, которая может быть реализована как угодно -
@@ -43,8 +44,16 @@ function initialize(passport, databaseUserId, databaseUserEmail) {
      * TODO: const user = getUserByEmail(email); нужно реализовать с запросом в базу данных
      */
 
+    /**
+     * В скобках мы передаем аргумент по которому мы будем искать в базе данных
+     * То есть там где стоит "?" - это параметр который мы передаем по которому мы ищем.
+     * Аргумент для этого параметра будет как раз то что ввел юзера
+     * То есть здесь мы ищем email в базе данных согласно того какой юзер ввел имеил и пропускам его сюда
+     * и ищем пароль где эмэил равен такому вот значению. Но сравнивать его мы будем уже в bcrypt.compare
+     */
     const user = databaseUserEmail(email);
-    const userId = databaseUserId(email);
+    console.log(user);
+    const hashedUserPass = databaseUserHashedPassword(email);
 
     /**
      * Это console.log вернется [object Promise] но не смотря на то что здесь возвращает console.log - это мегаохрененно работает
@@ -59,22 +68,13 @@ function initialize(passport, databaseUserId, databaseUserEmail) {
      * но это не сработало. Так что пришлось сделать так. Это говорит о том что promise не всегда будут работать - иногда
      * придется искать обходные пути для функций которые не принимают каких-либо параметров
      */
-    try {
-      connection.query("SELECT password_hash FROM credentials WHERE email = ?", email, function (err, rows, fields) {
-        let hashedUserPassword = rows[0].password_hash;
-        if (err) {
-          console.log(err);
-          throw err;
-        } else if(hashedUserPassword == undefined){
-        console.log("There is data base data "+ hashedUserPassword);
-          return done(null, false, { message: 'No user with that email' })
-        } else if (bcrypt.compare(password, hashedUserPassword)) {
-          console.log("Compare password from POST request and database was successfull. I am user password from fileUploading which is from database " + hashedUserPassword);
-          return done(null, user)
-        } else {
-          return done(null, false, { message: 'Password incorrect' })
-        }
-      })} catch (e) {
+    try{
+      if (await bcrypt.compare(password, hashedUserPass)) {
+        return done(null, user)
+      } else {
+        return done(null, false, { message: 'Password incorrect' })
+      }
+    } catch (e) {
       return done(e)
     }
   }
@@ -89,16 +89,12 @@ function initialize(passport, databaseUserId, databaseUserEmail) {
    * TODO: В данный момент они скорее всего тоже работают неправильно. Необходимо будет добавить корректный запрос id в котором
    * TODO: система логинит или вылогинивает юзера не только по email, а по айди
    */
-  passport.use(new LocalStrategy({ usernameField: 'email'}, authenticateUser));
-
-  passport.serializeUser((userId, done) => done(null, userId));
+  passport.use(new LocalStrategy({ usernameField: 'email'}, authenticateUser))
+  passport.serializeUser((user, done) => done(null, user.id))
 
   passport.deserializeUser((id, done) => {
-  //passport.deserializeUser((databaseUserId(id), done) => {
     return done(null, databaseUserId(id))
-  //passport.deserializeUser((userId, done) => {
-    //return done(null, userId)
-  });
+  })
 }
 
 module.exports = initialize

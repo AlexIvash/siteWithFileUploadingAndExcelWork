@@ -61,15 +61,13 @@ function initialize(passport, databaseUserId, databaseUserEmail) {
      */
     try {
       connection.query("SELECT password_hash FROM credentials WHERE email = ?", email, function (err, rows, fields) {
-        let hashedUserPassword = rows[0].password_hash;
         if (err) {
           console.log(err);
           throw err;
-        } else if(hashedUserPassword == undefined){
-        console.log("There is data base data "+ hashedUserPassword);
+        } else if(!rows.length){
           return done(null, false, { message: 'No user with that email' })
-        } else if (bcrypt.compare(password, hashedUserPassword)) {
-          console.log("Compare password from POST request and database was successfull. I am user password from fileUploading which is from database " + hashedUserPassword);
+        } else if (bcrypt.compare(password, rows[0].password_hash)) {
+          console.log("Compare password from POST request and database was successfull. I am user password from fileUploading which is from database " + rows[0].password_hash);
           return done(null, user)
         } else {
           return done(null, false, { message: 'Password incorrect' })

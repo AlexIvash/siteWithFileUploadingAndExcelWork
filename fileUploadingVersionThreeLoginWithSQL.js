@@ -173,7 +173,7 @@ app.post('/', (req, res) => {
                 res.redirect('/fileUploaded');
                 /**
                  * TODO: После того как File перемещен командой mv - мы должны сразу взять и загрузить его в базу данных MySql
-                 connection.query('INSERT INTO tasks (description) VALUES (?)', [req.body.item], (error, results)=>{
+                 connection.query('INSERT INTO media VALUES (?)', [req.body.item], (error, results)=>{
     if (error) return res.json({error: error});
 
     connection.query ('SELECT LAST_INSERT_ID() FROM tasks', (error, results) => {
@@ -256,14 +256,19 @@ app.get('/register', checkNotAuthenticated, (req, res) => {
 })
 
 /**
-После регистрации поля из запроса - username, hashed "password" и email пользователя попадают в базу данных
+После регистрации поля из запроса - username, hashed "password" и email пользователя попадают в базу данных. Они попадают в
+ виде JSON объекта и вставляются как set.
+ var credentials = {key: value}, где key - это имя столбца в MySql, а value - значение для записи(в нашем случае взятое
+ из запроса который пользователь отправляет когда вводит данные в поле и жмет submit - делая post request)
+
+
  */
 app.post('/register', checkNotAuthenticated, async (req, res) => {
        const hashedPassword = await bcrypt.hash(req.body.password, 10);
        var credentials ={
            username: req.body.name,
            email: req.body.email,
-           password: hashedPassword
+           password_hash: hashedPassword
        }
 
         connection.query('INSERT INTO credentials SET ?',credentials, function (error, results, fields) {
@@ -427,6 +432,11 @@ function workOnFile(pathToFile, res){
             xlsx.writeFile(newWB, "./downloads/newDataFile.xlsx");
 
             console.log(wb.SheetNames);
+
+
+            /**
+             * Здесь нужен query insert file в базу данных когда новый файл создан
+             */
             }
     });
 }

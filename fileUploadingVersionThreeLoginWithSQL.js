@@ -151,10 +151,14 @@ app.get('/', checkAuthenticated, (req, res) => {
 });
 
 app.post('/', (req, res) => {
-    if(req.files){
+    /**
+     * if (req.files) - значит "если файлы есть" - то
+     */
+    if(req.files) {
         console.log(req.files);
-        let file = req.files.file;
-        let fileName = file.name;
+        let users_file = req.files.file;
+        let fileName = users_file.name;
+        let userData = [users_file, fileName];
         /**
          * С помощью const/var (я еще не понял как это сделать)
          *нам нужно будет установить это как глобальную переменную которая будет указывать на
@@ -164,30 +168,65 @@ app.post('/', (req, res) => {
 
          */
 
-        console.log(fileName);
 
-        file.mv('./uploads/'+fileName, function (err) {
-            if (err) {
-                res.send(err);
-            } else {
+        /* Как было до
+            users_file.mv('./uploads/'+fileName, function (err) {
+                if (err) {
+                    res.send(err);
+                } else {
+                    res.redirect('/fileUploaded');
+                }});
+                console.log("Загружаем файл " + fileName + " в папку uploads");
+                */
+
+        let pathToFile = users_file.path;
+        console.log("Загружаем файл " + fileName + " в базу данных");
+        /**
+         * Если не использовать LOAD_FILE тогда у нас точно не файл загрузится в бинарном виде, а просто обычные данные загрузятся в бинарном виде(текст)
+         * https://chartio.com/resources/tutorials/how-to-grant-all-privileges-on-a-database-in-mysql/#:~:text=To%20GRANT%20ALL%20privileges%20to,TO%20'username'%40'localhost'%3B
+         *https://dev.mysql.com/doc/refman/8.0/en/string-functions.html#function_load-file
+         * учитывая что возвращает ошибку что поле не может быть пустым хотя я и передаю туда файл - дело в отсутствии прав доступа к какому-то файлу
+         *////Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx'
+        //INSERT INTO media (file, file_name) VALUES ("LOAD_FILE('/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx')", "test");
+
+
+        connection.query("INSERT INTO media (file, file_name) VALUES (\"LOAD_FILE('/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx')\", \"test\")", function (error, result) {
+        //connection.query("INSERT INTO media (file, file_name) VALUES (LOAD_FILE(?), 'test')", fileName, function (error, result) {
+        //connection.query("INSERT INTO media (file, file_name) VALUES (LOAD_FILE(?), 'test')", pathToFile, function (error, result) {
+        //connection.query("INSERT INTO media (file, file_name) VALUES (LOAD_FILE(pathToFile), 'test')", function (error, result) {
+        //connection.query("INSERT INTO media (file, file_name) VALUES (LOAD_FILE(pathToFile), 'test')", pathToFile, function (error, result) {
+            if (error) {
+                console.log(error);
+                throw error;
+            }
+            try {
+                console.log("File was successfully inserted to database");
                 res.redirect('/fileUploaded');
-                /**
-                 * TODO: После того как File перемещен командой mv - мы должны сразу взять и загрузить его в базу данных MySql
-                 connection.query('INSERT INTO media VALUES (?)', [req.body.item], (error, results)=>{
-    if (error) return res.json({error: error});
-
-    connection.query ('SELECT LAST_INSERT_ID() FROM tasks', (error, results) => {
-        if (error) return res.json({error: error});
+            } catch (error) {
+                console.log("Error happened during request to DATABASE");
+                throw error;
+            }
+        });
 
 
+    }
+})
 
-        res.json({
 
-                id: results[0]['LAST_INSERT_ID()'],
-                description: req.body.item
-            });
-    });
-});
+
+//connection.query('INSERT INTO media (file, file_name) VALUES (LOAD_FILE(users_file=?), fileName=?)', users_file, fileName, function (error, result) {
+/* connection.query("INSERT INTO media (file, file_name) VALUES (LOAD_FILE('$users_file'), '$fileName')", function (error, result) {
+             ;*/
+// connection.query("INSERT INTO media (file, file_name) VALUES (LOAD_FILE(?), ?)", userData, function (error, result) {
+            //SELECT id FROM credentials WHERE email = ? НУЖНО ДОБАВИТЬ ЕЩЕ И ИМЯ ФАЙЛА КОЛОНКУ В mysql
+            // connection.query('INSERT INTO media (file_name, file) VALUES (fileName, LOAD_FILE(users_file))', (error, result)=> {
+            // connection.query('INSERT INTO media (fileName, LOAD_FILE(users_file)) VALUES (file_name, file)', (error, result)=> {
+            //connection.query('INSERT INTO media (file_name, file) VALUES (fileName, users_file)', (error, result)=> {
+            //connection.query('INSERT INTO media (file, file_name) VALUES (LOAD_FILE("/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx"), fileName)', (error, result)=> {
+
+            /*, users_file, fileName, (error, result)=> {
+
+/**^^^^^
                  А если такой файл уже есть - тогда мы должны не добавлять его, а апдейтить
                  connection.query('UPDATE tasks SET completed = ? WHERE id = ?', [req.body.completed, req.params.id], (error, results) =>{
         if (error) return res.json({error: error});
@@ -195,10 +234,9 @@ app.post('/', (req, res) => {
         res.json({});
     });
                  */
-            }
-        });
-    }
-});
+
+
+
 
 app.get('/fileUploaded', (req, res) =>{
     res.sendFile(__dirname + '/views/fileUploaded.html');
@@ -509,6 +547,7 @@ async function connectionQueryEmail(databaseQuery, email) {
         });
     });
 }
+
 
 /**
  * Эта функция МОГЛА БЫ БЫТЬ универсальна для любых запросов в базу данных, включая

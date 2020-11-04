@@ -5,9 +5,32 @@
     <meta charset="utf-8" />
 </head>
 <body>
+<p>
+    Please choose a file to upload to Database
+</p>
 <form method="POST" action="/" enctype="multipart/form-data">
 <input type="file" name="file" />
 <button type="submit" value="Upload">Upload</button>
+</form>
+<form method="POST" action="/uploadExcel" enctype="multipart/form-data">
+        <p>
+            If this is a xlsx file and you want
+        </p>
+        <p>
+            to make this app work on this file - please click up here!
+        </p>
+        <input type="file" name="file" />
+        <button type="submit" value="Upload xlsx file">Upload xlsx file</button>
+</form>
+<form method="POST" action="/uploadCSV" enctype="multipart/form-data">
+    <p>
+        If this is a csv file and you want
+    </p>
+    <p>
+        to make this app work on this file - please click up here!
+    </p>
+    <input type="file" name="file" />
+    <button type="submit" value="Upload csv file">Upload csv file</button>
 </form>
 </body>
 </html>

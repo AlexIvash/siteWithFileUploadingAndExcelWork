@@ -49,6 +49,39 @@ Problem solving with starting app (related to mysql.server has not been started)
    а а затем пароль базы данных "password" - is a real password)
 3.После этого запускать node-приложение через node команду
 
+Problem solving № 2:
+Problem solving with sql error during inserting some data to database (The error is "The MySQL server is running with the --secure-file-priv option")
+1) Описание проблемы: Проблема проявлялась при запуске запроса 
+"LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx' INTO TABLE excel FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '
+' (date, region, brand, state, cost, sales);
+2) РЕШЕНИЕ!!!
+1. С рабочего стола в терминале запустить команду
+sudo vim /etc/my.cnf
+2.Вставить туда такие данные
+[mysqld_safe]
+[mysqld]
+secure_file_priv=""
+ПОСЛЕДНЯЯ СТРОКА ТАК ЖЕ МОЖЕТ БЫТЬ: secure_file_priv="null"
+Создание такого файла - влияет на всю операционную систему и где бы не запускался mysql - это должно на mysql влиять.
+Найдено решение здесь: https://stackoverflow.com/questions/32737478/how-should-i-tackle-secure-file-priv-in-mysql
+Так же добавил более детально в свой google docs:
+https://docs.google.com/document/d/1p9GFGQI2qgkXLiyJYi5os4YTM0KrF5dqn4Mo9qVZVXs/edit
+
+Problem solving №3:
+Problem solving with sql error during inserting some data to database (The error is "“Invalid utf8mb4 character string:")
+1) Описание проблемы: Проблема проявлялась при запуске запроса
+connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx' INTO TABLE excel CHARACTER SET utfmb4 (region, brand, state, cost, sales);",function (error, result) {
+И
+connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx' INTO TABLE excel (region, brand, state, cost, sales);",function (error, result) {
+2) РЕШЕНИЕ!!!
+set names latin 1; - in mysql terminal
+AND
+user query like this: connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx' INTO TABLE excel CHARACTER SET latin1 (region, brand, state, cost, sales);",function (error, result) {
+
+
+
+Взято отсюда: https://dzone.com/articles/mysql-57-utf8mb4-and-the-load-data-infile
+
 
 
 https://expressjs.com/en/guide/writing-middleware.html - guide на этом сайте дает готовые решение как например использовать cookiesValidator.

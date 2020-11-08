@@ -223,26 +223,31 @@ app.post('/uploadExcel', (req, res) => {
             if (err) {
                 throw err;
             } else {
-                let wb = xlsx.readFile('/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx', {cellDates: true});
-               /* let ws = wb.Sheets["Main Sheet"];
+                let wb = xlsx.readFile('/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomationOneLine.xlsx', {cellDates: true});
+                let ws = wb.Sheets["Main Sheet"];
                 let dataTest = xlsx.utils.sheet_to_csv(ws);
+
                 let data = xlsx.utils.sheet_to_json(ws);
                 var newWB = xlsx.utils.book_new();
 
                 var newWS = xlsx.utils.json_to_sheet(data);
                 xlsx.utils.book_append_sheet(newWB,newWS,"New Data");
+               // fs.writeFile("./uploads/dataConvertedExcel.csv", "dataTest", "utf-8");
+                fs.writeFile("./uploads/dataConvertedExcel.csv", dataTest, (err) => {
+                    if (err) throw err;
+                    console.log('The file has been saved!');
+                });
 
-               var test = xlsx.writeFile(newWB, "./uploads/newDataFile.csv");*/
 
 
                 //connection.query('LOAD DATA INFILE \'?\' INTO TABLE excel (region, brand, state, cost, sales);', users_file,function (error, result) {
                 //connection.query('LOAD DATA [LOCAL] INFILE \'?\' INTO TABLE excel;', users_file,function (error, result) {
                 //
-                connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomationOneLine.xlsx' INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY '\t' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (region, brand, state, cost, sales);",function (error, result) {
+                connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/test.csv' INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (region, brand, state, cost, sales);",function (error, result) {
                 //connection.query("LOAD DATA INFILE \'?\' INTO TABLE excel (date, region, brand, state, cost, sales);", users_file_data,function (error, result) {
-                //connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/test.csv' INTO TABLE excel FIELDS TERMINATED BY ',' (region, brand, state, cost, sales);", function (error, result) {
+                //connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/test.csv' INTO TABLE excel FIELDS TERMINATED BY ';' (region, brand, state, cost, sales);", function (error, result) {
                 // connection.query("LOAD DATA INFILE ? INTO TABLE excel CHARACTER SET utf8mb4 (region, brand, state, cost, sales);", users_file_data,function (error, result) {
-                //connection.query("LOAD DATA INFILE ? INTO TABLE excel FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\n' (region, brand, state, cost, sales);", users_file_data, function (error, result) {
+                //connection.query("LOAD DATA INFILE ? INTO TABLE excel FIELDS TERMINATED BY '\t' ENCLOSED BY '\"' LINES TERMINATED BY '\n' (region, brand, state, cost, sales);", users_file_data, function (error, result) {
                     if (error) {
                         console.log(error);
                         throw error;
@@ -261,8 +266,7 @@ app.post('/uploadExcel', (req, res) => {
 })
 
 /**
- Этот запрос будет добавлять именно файлы в отдельную excel таблицу и
- потом обрабатывать эти данные
+ Этот запрос будет обрабатывать только csv файлы - так сделано потому что синтаксис для разных файлов - всегда разный
  */
 app.post('/uploadCSV', (req, res) => {
     /**
@@ -274,12 +278,7 @@ app.post('/uploadCSV', (req, res) => {
         let fileName = users_file.name;
 
         console.log("Загружаем файл " + fileName + " в базу данных");
-
-      /*  connection.query('LOAD DATA INFILE \'?\' INTO TABLE excel FIELDS TERMINATED BY \',\'\n' +
-            'OPTIONALLY ENCLOSED BY \'"\'\n' +
-            'LINES TERMINATED BY \'\n\' (date, region, brand, state, cost, sales);', users_file,function (error, result) {*/
-        //connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/test.csv' INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY '\"' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' (region, brand, state, cost, sales);",function (error, result) {
-        connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx' INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY '\"\"' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' (region, brand, state, cost, sales);",function (error, result) {
+        connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/test.csv' INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (region, brand, state, cost, sales);",function (error, result) {
             if (error) {
                 console.log(error);
                 throw error;

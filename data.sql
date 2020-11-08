@@ -27,12 +27,32 @@ added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 file_name VARCHAR(30) NOT NULL,
 file LONGBLOB NOT NULL);
 
+
+/* Excel таблица - запрос до изменения
 CREATE TABLE IF NOT EXISTS excel (
 id INT(3) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 region LONGTEXT NOT NULL,
-brand VARCHAR(30) NOT NULL,
-state VARCHAR(30) NOT NULL,
-cost VARCHAR(30) NOT NULL,
-sales VARCHAR(30) NOT NULL
+brand LONGTEXT NOT NULL,
+state LONGTEXT NOT NULL,
+cost LONGTEXT NOT NULL,
+sales LONGTEXT NOT NULL,
+);
+*/
+
+/* Excel таблица - запрос после изменений
+   Я решил колонку ID сделать не как авто-инкремент, а как поле которые вставляем из документа.
+   Причина в том - что если мы из документа вставляем МНОГО рядов - и стоит id autoincrement - эти данные не будут вставляться -
+   а вставлен в базу данных будет только один ряд и один id который auto-increment.
+   А если мы будем вставлять id и другие поля из excel или csv файла - то сколько бы рядов не было в документе - все они будут вставлены
+   в своем количестве и с айдишником который из документа
+   */
+CREATE TABLE IF NOT EXISTS excel (
+id INT(5) NOT NULL,
+added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+region LONGTEXT NOT NULL,
+brand LONGTEXT NOT NULL,
+state LONGTEXT NOT NULL,
+cost LONGTEXT NOT NULL,
+sales LONGTEXT NOT NULL,
 );

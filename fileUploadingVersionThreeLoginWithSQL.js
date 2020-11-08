@@ -194,8 +194,12 @@ app.post('/', (req, res) => {
 })
 
 /**
- Этот запрос будет добавлять именно файлы в отдельную excel таблицу и
- потом обрабатывать эти данные
+
+Так как я не придумал как брать данные из POST запроса и сразу вставлять в базу данных - я решил обойти
+это костылем - скачивая файл который посылает юзер через file.mv
+ После того как файл был скачан - функция convertExcelToCsv берет файл и превращает его в csv
+ потом query запрос считывает данные из .csv файла и добавляет оттуда данные в базу данных.
+ Это - временная идея - потому что я не написал корректный запрос для обработки данных напряму/ из загруженного excel файла
  */
 app.post('/uploadExcel', (req, res) => {
     /**
@@ -203,56 +207,27 @@ app.post('/uploadExcel', (req, res) => {
      */
     if (req.files) {
         console.log(req.files);
-        let users_file = req.files.file;
-        //let users_file_data = req.files.file.data;
-        //let users_file_data = req.files.data;
-        let users_file_data = req.files.filename;
-        let fileName = users_file.name;
+        let file = req.files.file;
+        let fileName = file.name;
 
-        /**
-         * https://stackoverflow.com/questions/60222660/how-to-read-text-file-from-post-with-express-uploadfile -
-         * var logFile = req.files.fileName;
-
-         console.log(logFile);
-         var buffer = logFile.data;
-         console.log(buffer.toString('utf8'));
-         */
-
-        console.log("Загружаем файл " + fileName + " в базу данных");
-        fs.readFile('/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx', function (err, content) {
+        file.mv('./uploads/'+fileName, function (err) {
             if (err) {
-                throw err;
+                res.send(err);
             } else {
-                let wb = xlsx.readFile('/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomationOneLine.xlsx', {cellDates: true});
-                let ws = wb.Sheets["Main Sheet"];
-                let dataTest = xlsx.utils.sheet_to_csv(ws);
+                console.log("Загружаем файл " + fileName + " в базу данных");
+                let savedFile = path.join(__dirname+'/uploads'+ "/" + fileName);
+                /**
+                 * TODO: добавить распознавание расширения файла - если это excel или csv файл - то оно или будет включать convertExcelToCsv или не будет
+                 */
+               if (path.extname(savedFile) ==".xlsx") {
+                    convertExcelToCsv(savedFile);
+                }
 
-                let data = xlsx.utils.sheet_to_json(ws);
-                var newWB = xlsx.utils.book_new();
-
-                var newWS = xlsx.utils.json_to_sheet(data);
-                xlsx.utils.book_append_sheet(newWB,newWS,"New Data");
-               // fs.writeFile("./uploads/dataConvertedExcel.csv", "dataTest", "utf-8");
-                fs.writeFile("./uploads/dataConvertedExcel.csv", dataTest, (err) => {
-                    if (err) throw err;
-                    console.log('The file has been saved!');
-                });
-
-
-
-                //connection.query('LOAD DATA INFILE \'?\' INTO TABLE excel (region, brand, state, cost, sales);', users_file,function (error, result) {
-                //connection.query('LOAD DATA [LOCAL] INFILE \'?\' INTO TABLE excel;', users_file,function (error, result) {
-                //
-                connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/test.csv' INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (region, brand, state, cost, sales);",function (error, result) {
-                //connection.query("LOAD DATA INFILE \'?\' INTO TABLE excel (date, region, brand, state, cost, sales);", users_file_data,function (error, result) {
-                //connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/test.csv' INTO TABLE excel FIELDS TERMINATED BY ';' (region, brand, state, cost, sales);", function (error, result) {
-                // connection.query("LOAD DATA INFILE ? INTO TABLE excel CHARACTER SET utf8mb4 (region, brand, state, cost, sales);", users_file_data,function (error, result) {
-                //connection.query("LOAD DATA INFILE ? INTO TABLE excel FIELDS TERMINATED BY '\t' ENCLOSED BY '\"' LINES TERMINATED BY '\n' (region, brand, state, cost, sales);", users_file_data, function (error, result) {
+                connection.query("LOAD DATA INFILE ? INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (id, region, brand, state, cost, sales);", savedFile, function (error, result) {
                     if (error) {
                         console.log(error);
                         throw error;
-                    }
-                    try {
+                    } try {
                         console.log("File was successfully inserted to database");
                         res.redirect('/fileUploaded');
                     } catch (error) {
@@ -261,9 +236,33 @@ app.post('/uploadExcel', (req, res) => {
                     }
                 });
             }
+        });
+
+
+            }
+
+    /**
+     Запросы отсюда сделаны для того чтобы вставлять данные напрямую из excel -  а не конвертировать при этом в csv как сейчас
+
+
+     * https://stackoverflow.com/questions/60222660/how-to-read-text-file-from-post-with-express-uploadfile -
+     * var logFile = req.files.fileName;
+
+     console.log(logFile);
+     var buffer = logFile.data;
+     console.log(buffer.toString('utf8'));
+
+     let users_file_data = req.files.file.data;
+     let users_file_data = req.files.data;
+     let users_file_data = req.files.filename;
+     //connection.query('LOAD DATA INFILE \'?\' INTO TABLE excel (region, brand, state, cost, sales);', users_file,function (error, result) {
+                //connection.query('LOAD DATA [LOCAL] INFILE \'?\' INTO TABLE excel;', users_file,function (error, result) {
+                //connection.query("LOAD DATA INFILE \'?\' INTO TABLE excel (date, region, brand, state, cost, sales);", users_file_data,function (error, result) {
+                //connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/test.csv' INTO TABLE excel FIELDS TERMINATED BY ';' (region, brand, state, cost, sales);", function (error, result) {
+                // connection.query("LOAD DATA INFILE ? INTO TABLE excel CHARACTER SET utf8mb4 (region, brand, state, cost, sales);", users_file_data,function (error, result) {
+                //connection.query("LOAD DATA INFILE ? INTO TABLE excel FIELDS TERMINATED BY '\t' ENCLOSED BY '\"' LINES TERMINATED BY '\n' (region, brand, state, cost, sales);", users_file_data, function (error, result) {
+     */
         })
-    }
-})
 
 /**
  Этот запрос будет обрабатывать только csv файлы - так сделано потому что синтаксис для разных файлов - всегда разный
@@ -272,22 +271,30 @@ app.post('/uploadCSV', (req, res) => {
     /**
      * if (req.files) - значит "если файлы есть" - то
      */
-    if(req.files) {
+    if (req.files) {
         console.log(req.files);
-        let users_file = req.files.file;
-        let fileName = users_file.name;
+        let file = req.files.file;
+        let fileName = file.name;
 
         console.log("Загружаем файл " + fileName + " в базу данных");
-        connection.query("LOAD DATA INFILE '/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/test.csv' INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (region, brand, state, cost, sales);",function (error, result) {
-            if (error) {
-                console.log(error);
-                throw error;
-            } try {
-                console.log("File was successfully inserted to database");
-                res.redirect('/fileUploaded');
-            } catch (error) {
-                console.log("Error happened during request to DATABASE");
-                throw error;
+        file.mv('./uploads/'+fileName, function (err) {
+            if (err) {
+                res.send(err);
+            } else {
+                console.log("Загружаем файл " + fileName + " в базу данных");
+                let dataToQuery = path.join(__dirname+'/uploads'+ "/" + fileName);
+                connection.query("LOAD DATA INFILE ? INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (id, region, brand, state, cost, sales);", dataToQuery, function (error, result) {
+                    if (error) {
+                        console.log(error);
+                        throw error;
+                    } try {
+                        console.log("File was successfully inserted to database");
+                        res.redirect('/fileUploaded');
+                    } catch (error) {
+                        console.log("Error happened during request to DATABASE");
+                        throw error;
+                    }
+                });
             }
         });
     }
@@ -720,6 +727,32 @@ async function connectionQueryEmail(databaseQuery, email) {
     });
 }
 
+/**
+ * This is a function to convert data from excel to csv and write this file into our file system
+ */
+  async function convertExcelToCsv(savedFile){
+
+            let wb = xlsx.readFile(savedFile, {cellDates: true});
+            //let wb = xlsx.readFile('/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx', {cellDates: true});
+            let ws = wb.Sheets["Main Sheet"];
+            let dataTest = xlsx.utils.sheet_to_csv(ws);
+
+    /**
+     * This is a function which just change fileName (means dataToConvert) - it trims extension and add another csv extension
+     */
+
+     let nameBeforeConcatination = savedFile.split('.');//it should return file name without extension
+     let convertedFileName = nameBeforeConcatination[0].concat(".csv");
+     console.log("I am converted file name" + convertedFileName);
+
+
+   // fs.writeFile("./uploads/" + "dataConvertedExcel.csv", dataTest, (err) => {
+            fs.writeFile(convertedFileName, dataTest, (err) => {
+            if (err) throw err;
+                console.log('The file has been saved!');
+            });
+            console.log("convertExcelToCsv has been done successfully")
+}
 
 /**
  * Эта функция МОГЛА БЫ БЫТЬ универсальна для любых запросов в базу данных, включая

@@ -201,7 +201,7 @@ app.post('/', (req, res) => {
  потом query запрос считывает данные из .csv файла и добавляет оттуда данные в базу данных.
  Это - временная идея - потому что я не написал корректный запрос для обработки данных напряму/ из загруженного excel файла
  */
-app.post('/uploadExcel', (req, res) => {
+app.post('/uploadTextFile', (req, res) => {
     /**
      * if (req.files) - значит "если файлы есть" - то
      */
@@ -213,32 +213,27 @@ app.post('/uploadExcel', (req, res) => {
         file.mv('./uploads/'+fileName, function (err) {
             if (err) {
                 res.send(err);
+                console.log("Error happened during saving file to the data");
             } else {
                 console.log("Загружаем файл " + fileName + " в базу данных");
                 let savedFile = path.join(__dirname+'/uploads'+ "/" + fileName);
                 /**
-                 * TODO: добавить распознавание расширения файла - если это excel или csv файл - то оно или будет включать convertExcelToCsv или не будет
+                 * Это свитчер - который если файл .xlsx расширения - мы сконвертим его в .csv
+                 * файл. Если файл другого расширения ( csv или другой) - мы сразу пытаемся вставить его в базу данных
+                 * TODO: Здесь есть баг - если используется эта функция - то файл после конвертации в директории почему-то пуст
+                 * TODO: Но данные из файла после конвертации и после того как их вставить в базу данных - успешно
+                 * TODO: загружаются в mysql. Это говорит о том что это работает
+                 * TODO: но сам файл после конвертации пуст. Это ни на что не влияет, но возможно это стоит иметь ввиду
+                 * TODO: решить проблему или удалением файла после сохранения его в проекте или вообще сделать так
+                 * TODO: чтобы файл не нужно было сохранять для того, чтобы считать из него данные
                  */
-               if (path.extname(savedFile) ==".xlsx") {
-                    convertExcelToCsv(savedFile);
+               if (path.extname(savedFile) ===".xlsx") {
+                    convertExcelToCsvAndInsertIntoDataBase(savedFile);
                 }
-
-                connection.query("LOAD DATA INFILE ? INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (id, region, brand, state, cost, sales);", savedFile, function (error, result) {
-                    if (error) {
-                        console.log(error);
-                        throw error;
-                    } try {
-                        console.log("File was successfully inserted to database");
-                        res.redirect('/fileUploaded');
-                    } catch (error) {
-                        console.log("Error happened during request to DATABASE");
-                        throw error;
-                    }
-                });
+                   insertTextToDatabase(savedFile);
+                   res.redirect('/fileUploaded');
             }
         });
-
-
             }
 
     /**
@@ -264,182 +259,55 @@ app.post('/uploadExcel', (req, res) => {
      */
         })
 
-/**
- Этот запрос будет обрабатывать только csv файлы - так сделано потому что синтаксис для разных файлов - всегда разный
- */
-app.post('/uploadCSV', (req, res) => {
-    /**
-     * if (req.files) - значит "если файлы есть" - то
-     */
-    if (req.files) {
-        console.log(req.files);
-        let file = req.files.file;
-        let fileName = file.name;
-
-        console.log("Загружаем файл " + fileName + " в базу данных");
-        file.mv('./uploads/'+fileName, function (err) {
-            if (err) {
-                res.send(err);
-            } else {
-                console.log("Загружаем файл " + fileName + " в базу данных");
-                let dataToQuery = path.join(__dirname+'/uploads'+ "/" + fileName);
-                connection.query("LOAD DATA INFILE ? INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (id, region, brand, state, cost, sales);", dataToQuery, function (error, result) {
-                    if (error) {
-                        console.log(error);
-                        throw error;
-                    } try {
-                        console.log("File was successfully inserted to database");
-                        res.redirect('/fileUploaded');
-                    } catch (error) {
-                        console.log("Error happened during request to DATABASE");
-                        throw error;
-                    }
-                });
-            }
-        });
-    }
-})
-
 app.get('/fileUploaded', (req, res) =>{
     res.sendFile(__dirname + '/views/fileUploaded.html');
 })
 
+
+
 /**
- * В этой функции мы берем наш файл и обрабатываем его.
- * Файл пока только один и он захардкожен. Чтобы обработать другой файл - последние столбцы в нем
- * должны называться так же как называются здесь (check workOnFile please)
+ * Связь между кнопкой отправки лежит в методе "app.post" и в html
+ * лежит <form method="POST" action="/fileUploaded" enctype="multipart/form-data"> - form method
+ * и action - fileUploaded
  */
-
-
 app.post('/fileUploaded', (req, res) => {
-    //let pathToFile = path.join(__dirname+'/uploads'+'/excelAutomation.xlsx');
-
-    // console.log("I am in POST request 'fileUploaded'");
-
-    /**
-     * Связь между кнопкой отправки лежит в методе "app.post" и в html
-     * лежит <form method="POST" action="/fileUploaded" enctype="multipart/form-data"> - form method
-     * и action - fileUploaded
+    /**TODO:нужно как-то проверить айдишники которые вставляли их возвращать здесь и из них именно и создавать файл который загружать
+     TODO:и обрабатывать.
+     TODO: Если в бд есть другие записи - уведомлять о них так же.
      */
-
-/**
-
-  по этому запросу стало понятно что все же проблема в запросах которых я писал и теперь нужно что-то с этим делать
-    connection.query('SELECT LAST_INSERT_ID() FROM media', (error, results) => {
-        if (error) return res.json({error: error});
-
-
-        res.json({
-
-            id: results[0]['LAST_INSERT_ID()'],
-            file_name: results[0]
-        });
-    });
-
-})*/
-
-
-
-
-    //connection.query("SELECT file FROM media WHERE LAST_INSERT_ID()", function (error, result) {
-    //  connection.query("SELECT LAST_INSERT_ID() FROM media", function (error, result) {
-      //connection.query("SELECT file_name FROM media WHERE id = 16", function (error, result) {
-          //connection.query("SELECT LOAD_FILE(file) FROM media WHERE id = 16", function (error, result) {
-    //connection.query("SELECT LAST_INSERT_ID() FROM media", function (error, result) {
-    connection.query("SELECT file FROM media WHERE id = 19", function (error, result) {
-
-
-              //connection.query("SELECT \"LOAD_FILE(file)\" FROM media WHERE id = 16", function (error, result) {
-              if (error) {
-                  console.log(error);
-                  throw error;
-              }
-
-              console.log("I am in POST request '/fileUploaded' in connection query method");
-              console.log(result[0]);
-              console.log(result);
-        console.log(result[0].file);
-              let pathToFile = result[0].file;
-              //let pathToFile = result[0]['file'];
-              //let pathToFile = result[0];
-              workOnFile(pathToFile, res);
-
-
-                  /**
-                   Это про то - если выводить картинку на экране например
-                   response.writeHead(200, {
-            'Content-Type': 'image/jpeg'
-        });
-                   response.send(result);
-                   */
-
-              })
-
-    /**
-     * Здесь после workFile нужно будет написать запрос который вставляет новый файл в колонку для новых файлов
-     */
-})
-
-        /* if (error) {
-             console.log(error);
-             throw error;
-         }
-
-
-
-        try {
-            console.log("I am in POST request '/fileUploaded' in connection query method");
-            //console.log("File was successfully downloaded from database");
-            //
-
-            res.sendFile(__dirname + '/views/fileWorked.html');
-            // return pathToFile;
-        } catch (error) {
-            console.log("Error happened during request to DATABASE");
-            throw error;
-        }
-    }
-}
-})*/
-
-app.get('/downloadNewFile', (req, res) => {
-
-
-   // res.sendFile(__dirname + '/views/fileWorked.html');
-    // res.sendFile(__dirname + '/views/fileUploaded.html');
-    // if(req) {
-    console.log("I am in GET request '/downloadNewFile'");
-    //connection.query("SELECT file FROM media WHERE LAST_INSERT_ID()", function (error, result) {
-    //  connection.query("SELECT LAST_INSERT_ID() FROM media", function (error, result) {
-    //  connection.query("SELECT file_name FROM media WHERE id is 16", function (error, result) {
-    //connection.query("SELECT LOAD_FILE(file) FROM media WHERE id = 16", function (error, result) {
-    //  connection.query("SELECT * FROM media WHERE id = 16", function (error, result) {
-
-
-    connection.query("SELECT file FROM media WHERE id = 19", function (error, result) {
-
-
-        //connection.query("SELECT \"LOAD_FILE(file)\" FROM media WHERE id = 16", function (error, result) {
+    //SELECT LAST_INSERT_ID() FROM excel
+    //SELECT * FROM excel WHERE id = 5
+    //SELECT * FROM excel
+    connection.query("SELECT * FROM excel", function (error, result) {
         if (error) {
             console.log(error);
             throw error;
         }
-        try {
-            console.log("File was successfully downloaded from database");
-            //  res.redirect('/');
-            console.log("I am in POST request '/fileUploaded' in connection query method");
-            console.log(result[0]);
-            console.log(result);
-            console.log(result[0].file);
-            let pathToFile = result[0].file;
-             //sendFile(pathToFile, res);
-            // return pathToFile;
-            sendFileSafe(pathToFile, res);
-        } catch (error) {
-            console.log("Error happened during request to DATABASE");
-            throw error;
-        }
+        console.log("I am in POST request '/fileUploaded' in connection query method");
+        console.log(result);//returns whole data with the region, brand, state, cost, sales. id
+        let jsonData = result;//правильный вариант того как выглядит запрос в базу данных
+
+        /**
+         Здесь мы создаем новый файл с данными из бд и сохраняем его в директорию проекта - потом передаем его в workOnFile функцию
+         */
+        var newWB = xlsx.utils.book_new();
+        var newWS = xlsx.utils.json_to_sheet(jsonData);
+        xlsx.utils.book_append_sheet(newWB,newWS,"New Data");
+        xlsx.writeFile(newWB, "./downloads/newDataFile1.xlsx");
+        let pathToFile = path.join(__dirname+'/downloads'+'/newDataFile1.xlsx');
+        /**
+         * сюда мы будем передавать новосозданный файл с данными из базы данных.
+         */
+        workOnFile(pathToFile, res);
     })
+});
+
+app.get('/downloadNewFile', (req, res) =>{
+    let pathToFile = path.join(__dirname+'/downloads'+'/newDataFile1.xlsx');
+
+    console.log("I am in GET request '/downloadNewFile'");
+
+    sendFile(pathToFile, res);
 })
 
 
@@ -472,8 +340,6 @@ app.get('/register', checkNotAuthenticated, (req, res) => {
  виде JSON объекта и вставляются как set.
  var credentials = {key: value}, где key - это имя столбца в MySql, а value - значение для записи(в нашем случае взятое
  из запроса который пользователь отправляет когда вводит данные в поле и жмет submit - делая post request)
-
-
  */
 app.post('/register', checkNotAuthenticated, async (req, res) => {
        const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -625,10 +491,6 @@ function workOnFile(pathToFile, res){
              * возможно следует сделать редирект на fileDownloaded и на том GET запросе выдавать этот файл
              */
             res.sendFile(__dirname + '/views/fileWorked.html');
-
-
-
-
             let wb = xlsx.readFile(pathToFile, {cellDates:true});
             let ws = wb.Sheets["Main Sheet"];
             var data = xlsx.utils.sheet_to_json(ws);
@@ -730,28 +592,43 @@ async function connectionQueryEmail(databaseQuery, email) {
 /**
  * This is a function to convert data from excel to csv and write this file into our file system
  */
-  async function convertExcelToCsv(savedFile){
+  async function convertExcelToCsvAndInsertIntoDataBase(fileToConvert){
 
-            let wb = xlsx.readFile(savedFile, {cellDates: true});
+            let wb = xlsx.readFile(fileToConvert, {cellDates: true});
             //let wb = xlsx.readFile('/Users/oleksandr.ivashchenko/PhpstormProjects/projectDownloadAndWorkExcel/uploads/excelAutomation.xlsx', {cellDates: true});
             let ws = wb.Sheets["Main Sheet"];
-            let dataTest = xlsx.utils.sheet_to_csv(ws);
+            let data = xlsx.utils.sheet_to_csv(ws);
 
     /**
      * This is a function which just change fileName (means dataToConvert) - it trims extension and add another csv extension
      */
+     let convertedFileName = fileToConvert.replace(/.xlsx/g, ".csv");
+     console.log("I am converted file name: " + convertedFileName);
 
-     let nameBeforeConcatination = savedFile.split('.');//it should return file name without extension
-     let convertedFileName = nameBeforeConcatination[0].concat(".csv");
-     console.log("I am converted file name" + convertedFileName);
-
-
-   // fs.writeFile("./uploads/" + "dataConvertedExcel.csv", dataTest, (err) => {
-            fs.writeFile(convertedFileName, dataTest, (err) => {
+    /**
+     Эта функция создает файл в месте и с именем куда указывает переменная convertedFileName
+     и с данными которые туда добавляет переменная
+     */
+    fs.writeFile(convertedFileName, data, (err) => {
             if (err) throw err;
                 console.log('The file has been saved!');
             });
             console.log("convertExcelToCsv has been done successfully")
+    insertTextToDatabase(convertedFileName)
+}
+
+async function insertTextToDatabase(fileToInsert){
+    connection.query("LOAD DATA INFILE ? INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (id, region, brand, state, cost, sales);", fileToInsert, function (error, result) {
+        if (error) {
+            console.log(error);
+            throw error;
+        } try {
+            console.log("File was successfully inserted to database");
+        } catch (error) {
+            console.log("Error happened during request to DATABASE");
+            throw error;
+        }
+    });
 }
 
 /**

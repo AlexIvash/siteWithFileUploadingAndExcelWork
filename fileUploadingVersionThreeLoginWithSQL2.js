@@ -1,7 +1,7 @@
 /**
  * Here is the version where mysql saving files, then send this data to mysql
- * then download file according to info from mysql
- * then work on it, and create a new file
+ * then in mysql work on these data, then download file according to info from mysql
+ * (which means that on data in this file we have worked exactly during request to mysql)
  */
 
 
@@ -277,36 +277,28 @@ app.get('/fileUploaded', (req, res) =>{
  * Связь между кнопкой отправки лежит в методе "app.post" и в html
  * лежит <form method="POST" action="/fileUploaded" enctype="multipart/form-data"> - form method
  * и action - fileUploaded
+ * Эта функция уже вмещает в себя workOnFile в которой проводились все наши работы с загруженным файлом.
+ * Потому в этой версии приложения workOnFile функция была удалена
  */
 app.post('/fileUploaded', (req, res) => {
     /**TODO:нужно как-то проверить айдишники которые вставляли их возвращать здесь и из них именно и создавать файл который загружать
      TODO:и обрабатывать.
      TODO: Если в бд есть другие записи - уведомлять о них так же.
      */
-    //SELECT LAST_INSERT_ID() FROM excel
-    //SELECT * FROM excel WHERE id = 5
-    //SELECT * FROM excel
-    connection.query("SELECT * FROM excel", function (error, result) {
+    connection.query("SELECT id,added_date,region, brand, state, (cost-sales) as saleWithoutCosts FROM excel", function (error, result) {
         if (error) {
             console.log(error);
             throw error;
+        } else {
+            console.log("I am in POST request '/fileUploaded' in connection query method");
+            console.log(result);
+            let jsonData = result;//правильный вариант того как выглядит запрос в базу данных
+            var newWB = xlsx.utils.book_new();
+            var newWS = xlsx.utils.json_to_sheet(jsonData);
+            xlsx.utils.book_append_sheet(newWB, newWS, "New Data");
+            xlsx.writeFile(newWB, "./downloads/newDataFile2.xlsx");
+            res.sendFile(__dirname + '/views/fileWorked.html');
         }
-        console.log("I am in POST request '/fileUploaded' in connection query method");
-        console.log(result);//returns whole data with the region, brand, state, cost, sales. id
-        let jsonData = result;//правильный вариант того как выглядит запрос в базу данных
-
-        /**
-         Здесь мы создаем новый файл с данными из бд и сохраняем его в директорию проекта - потом передаем его в workOnFile функцию
-         */
-        var newWB = xlsx.utils.book_new();
-        var newWS = xlsx.utils.json_to_sheet(jsonData);
-        xlsx.utils.book_append_sheet(newWB,newWS,"New Data");
-        xlsx.writeFile(newWB, "./downloads/newDataFile1.xlsx");
-        let pathToFile = path.join(__dirname+'/downloads'+'/newDataFile1.xlsx');
-        /**
-         * сюда мы будем передавать новосозданный файл с данными из базы данных.
-         */
-        workOnFile(pathToFile, res);
     })
 });
 
@@ -479,9 +471,10 @@ function sendFile(filePath, res){
 }
 
 /**
- * В этой функции в параметрах прилетает путь к фалу который мы создали и заполнили данными которые мы получили
- * из mysql базы данных.
- */
+ * We don't need this function in this version of app
+ * @param pathToFile
+ * @param res
+
 function workOnFile(pathToFile, res){
     console.log("Work started on your file in workOnFile function");
     fs.readFile(pathToFile, function(err, content){
@@ -504,14 +497,10 @@ function workOnFile(pathToFile, res){
             xlsx.utils.book_append_sheet(newWB,newWS,"New Data");
             xlsx.writeFile(newWB, "./downloads/newDataFile.xlsx");
             console.log(wb.SheetNames);
-
-
-            /**
-             * TODO:Здесь нужен query insert file в базу данных когда новый файл создан
-             */
             }
     });
 }
+*/
 
 function checkAuthenticated(req, res, next) {
     if (req.isAuthenticated()) {

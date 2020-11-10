@@ -146,9 +146,15 @@ app.use(methodOverride('_method'))
  Еще один пример - использование например роутинга
  // mount the router on the app
  app.use('/', router);
+
+
+ В нашем случае мы используем
+ app.use(upload()); - для возможности загрузки файла на сервер
+ app.use(express.static('views')); - чтобы указать на наш css file.
+ Без этой команды ссылка на css в html не сработает и фактически файл не прогрузится
  */
 app.use(upload());
-
+app.use(express.static('views'));
 /**
  * There we will connect this js file with the html file. SO when browser opens a page(makes a get request) - there will be returned our html file./
  * That how we works with js and html files.
@@ -285,21 +291,97 @@ app.post('/fileUploaded', (req, res) => {
      TODO:и обрабатывать.
      TODO: Если в бд есть другие записи - уведомлять о них так же.
      */
-    connection.query("SELECT id,added_date,region, brand, state, (cost-sales) as saleWithoutCosts FROM excel", function (error, result) {
-        if (error) {
-            console.log(error);
-            throw error;
-        } else {
-            console.log("I am in POST request '/fileUploaded' in connection query method");
-            console.log(result);
-            let jsonData = result;//правильный вариант того как выглядит запрос в базу данных
-            var newWB = xlsx.utils.book_new();
-            var newWS = xlsx.utils.json_to_sheet(jsonData);
-            xlsx.utils.book_append_sheet(newWB, newWS, "New Data");
-            xlsx.writeFile(newWB, "./downloads/newDataFile2.xlsx");
-            res.sendFile(__dirname + '/views/fileWorked.html');
-        }
-    })
+
+    let operations ={
+        toDo: req.body.toDo,
+        columnOne: req.body.columnOne,
+        columnTwo: req.body.columnTwo
+    }
+    console.log(operations);
+    console.log(operations.toDo);
+
+    /**
+     * That is the request which was there before:
+     * connection.query("SELECT id,added_date,region, brand, state, (cost-sales) as saleWithoutCosts FROM excel", function (error, result) {
+     *
+     * Что касается реализации метода с минусом или плюсом который вводится в toDofields - я пока не нашел более лучшего метода чем тупой реализации
+     * чем if/else.
+     */
+
+    if(operations.toDo==='-'){
+        connection.query("SELECT id,added_date,region, brand, state, (?-?) as newColumn FROM excel", [operations.columnOne,operations.columnTwo], function (error, result) {
+
+            if (error) {
+                console.log(error);
+                throw error;
+            } else {
+                console.log("I am in POST request '/fileUploaded' in connection query method");
+                console.log(result);
+                let jsonData = result;//правильный вариант того как выглядит запрос в базу данных
+                var newWB = xlsx.utils.book_new();
+                var newWS = xlsx.utils.json_to_sheet(jsonData);
+                xlsx.utils.book_append_sheet(newWB, newWS, "New Data");
+                xlsx.writeFile(newWB, "./downloads/newDataFile2.xlsx");
+                res.sendFile(__dirname + '/views/fileWorked.html');
+            }
+        })
+    } else if(operations.toDo==='+') {
+        connection.query("SELECT id,added_date,region, brand, state, (?+?) as newColumn FROM excel", [operations.columnOne,operations.columnTwo], function (error, result) {
+
+            if (error) {
+                console.log(error);
+                throw error;
+            } else {
+                console.log("I am in POST request '/fileUploaded' in connection query method");
+                console.log(result);
+                let jsonData = result;//правильный вариант того как выглядит запрос в базу данных
+                var newWB = xlsx.utils.book_new();
+                var newWS = xlsx.utils.json_to_sheet(jsonData);
+                xlsx.utils.book_append_sheet(newWB, newWS, "New Data");
+                xlsx.writeFile(newWB, "./downloads/newDataFile2.xlsx");
+                res.sendFile(__dirname + '/views/fileWorked.html');
+            }
+        })
+
+    } else if(operations.toDo==='*'){
+        connection.query("SELECT id,added_date,region, brand, state, (?*?) as newColumn FROM excel", [operations.columnOne,operations.columnTwo], function (error, result) {
+
+            if (error) {
+                console.log(error);
+                throw error;
+            } else {
+                console.log("I am in POST request '/fileUploaded' in connection query method");
+                console.log(result);
+                let jsonData = result;//правильный вариант того как выглядит запрос в базу данных
+                var newWB = xlsx.utils.book_new();
+                var newWS = xlsx.utils.json_to_sheet(jsonData);
+                xlsx.utils.book_append_sheet(newWB, newWS, "New Data");
+                xlsx.writeFile(newWB, "./downloads/newDataFile2.xlsx");
+                res.sendFile(__dirname + '/views/fileWorked.html');
+            }
+        })
+    } else if(operations.toDo==='/'){
+        connection.query("SELECT id,added_date,region, brand, state, (?/?) as newColumn FROM excel", [operations.columnOne,operations.columnTwo], function (error, result) {
+
+            if (error) {
+                console.log(error);
+                throw error;
+            } else {
+                console.log("I am in POST request '/fileUploaded' in connection query method");
+                console.log(result);
+                let jsonData = result;//правильный вариант того как выглядит запрос в базу данных
+                var newWB = xlsx.utils.book_new();
+                var newWS = xlsx.utils.json_to_sheet(jsonData);
+                xlsx.utils.book_append_sheet(newWB, newWS, "New Data");
+                xlsx.writeFile(newWB, "./downloads/newDataFile2.xlsx");
+                res.sendFile(__dirname + '/views/fileWorked.html');
+            }
+        })
+    } else{
+        res.end("Bad Request");
+    }
+
+
 });
 
 app.get('/downloadNewFile', (req, res) =>{

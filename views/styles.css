@@ -1,0 +1,76 @@
+body{
+    background: aliceblue;
+    padding-top: 50px;
+    padding-bottom: 80px;
+}
+h2{
+    margin-bottom: 40px;
+}
+.steps-text{
+    line-height: 27px;
+    font-size: 13px;
+}
+.mbtext{
+    margin-bottom: 70px;
+}
+.stepblock{
+    width: 340px;
+    height: 370px;
+    background: #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+.stepblock .step-num{
+    font-size: 200px;
+    position: relative;
+    top: -280px;
+    left: -30px;
+}
+.stepblock:hover{
+    background: #ffcc01;
+    color: cornflowerblue;
+}
+.steps-container{
+    margin-bottom: 50px;
+    display: flex;
+    justify-content: space-between;
+}
+.stepblock h4{
+    font-size: 14px;
+    margin-left: 40px;
+    margin-top: -530px;
+    margin-bottom: 20px;
+}
+.stepblock h4 span{
+    margin-right: 15px;
+}
+.stepblock .step-info{
+    margin-left: 70px;
+    line-height: 29px;
+}
+.stepblock .stepinfolast{
+    display: inline-block;
+    margin-left: 70px;
+    margin-top: 20px;
+    border-bottom: 3px solid #000;
+}
+
+
+p{
+    padding-left: 27px;
+    margin-left: 35px;
+    font-size: 20px;
+    font-color: black;
+}
+form{
+    width: 442px;
+    height: 70px;
+    color: cornflowerblue;
+    padding-left: 27px;
+    margin-left: 35px;
+    font-size: 15px;
+    background-image: url(img/arrow.png);
+    background-repeat: no-repeat;
+}
+.footer-link a:hover{
+    opacity: 0.4;
+}

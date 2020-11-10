@@ -8,7 +8,7 @@ load some files to your server. More of other data is to just make it correctly 
 HOW TO LAUNCH THIS APP:
 
 
-Way to start this application:
+How to start this application:
 
 1)Do NOT forget to nvm use 12 and "npm i" - it will install all dependencies from the package.json.
 2) Before starting app - start mysql server from the terminal in the nodeApi folder with using of 
@@ -18,7 +18,7 @@ sudo mysql -u root -p
    Ввести пароль "MAC"(запуск super user)
    а а затем пароль базы данных "password" - is a real password)
 4) After it use this command for start application:
-node fileUploadingVersionThreeLogin
+node myAppVersionFour (before it was node fileUploadingVersionThreeLoginWithSQL)
 
 
 

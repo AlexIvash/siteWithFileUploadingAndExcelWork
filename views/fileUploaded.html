@@ -3,12 +3,24 @@
 <head>
     <title>title</title>
     <meta charset="utf-8" />
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <p>File uploaded. Sorry, this is a test of feature, so now we can work only on excelAutomation.xlsx file.</p>
 <p>What do you want me to do next?</p>
+<p>Insert column one name from your file to do operations</p>
+<p>Insert plus, minus, etc. in toDo field</p>
+<p>Insert column two name from your file to do operations</p>
 
 <form method="POST" action="/fileUploaded" enctype="multipart/form-data">
+<p>column one</p>
+<input type="text" id="columnOne" name="columnOne" />
+<br>
+<p>to do field</p>
+<input type="text" id="toDo" name="toDo" />
+<br>
+<p>column two</p>
+<input type="text" id="columnTwo" name="columnTwo" />
 <button id="workOnFile" type="submit" value="Work on file">Work on file</button>
 </form>
 </body>

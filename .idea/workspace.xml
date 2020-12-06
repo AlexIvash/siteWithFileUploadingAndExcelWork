@@ -20,9 +20,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="01383974-5fa0-46cf-b8df-7706c9b1df26" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/projectDonwloadAndWorkExcel.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/projectDownloadAndWorkExcel.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/fileDownload2.js" beforeDir="false" afterPath="$PROJECT_DIR$/fileDownload2.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -33,7 +31,15 @@
     <execution />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../projectDownloadAndWorkExcel" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
   <component name="ProjectId" id="1igD3z13BI6bDE8UwonqJ0XHPnx" />
   <component name="ProjectViewState">
@@ -46,7 +52,7 @@
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="javascript.nodejs.core.library.configured.version" value="6.10.3" />
-    <property name="javascript.nodejs.core.library.typings.version" value="6.14.12" />
+    <property name="javascript.nodejs.core.library.typings.version" value="6.14.13" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path" value="node" />
     <property name="nodejs_package_manager_path" value="npm" />
@@ -71,6 +77,18 @@
       <workItem from="1602353239371" duration="9731000" />
       <workItem from="1602427530182" duration="3454000" />
       <workItem from="1602520601811" duration="6507000" />
+      <workItem from="1614613650762" duration="815000" />
+      <workItem from="1614615467616" duration="5000" />
+      <workItem from="1614617998840" duration="2270000" />
+      <workItem from="1614676431570" duration="439000" />
+      <workItem from="1615043213363" duration="2841000" />
+      <workItem from="1615053116453" duration="17000" />
+      <workItem from="1615055044744" duration="8000" />
+      <workItem from="1615055055602" duration="5000" />
+      <workItem from="1615055122371" duration="2848000" />
+      <workItem from="1615280072026" duration="9376000" />
+      <workItem from="1616753136084" duration="1623000" />
+      <workItem from="1617008048092" duration="1172000" />
     </task>
     <servers />
   </component>
@@ -88,11 +106,5 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="809" y="401" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1602331431149">
-      <screen x="0" y="23" width="1680" height="934" />
-    </state>
-    <state x="809" y="401" key="#com.intellij.fileTypes.FileTypeChooser/0.23.1680.934@0.23.1680.934" timestamp="1602331431149" />
   </component>
 </project>

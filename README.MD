@@ -1,4 +1,14 @@
+Что есть в этом приложении:
+1)Регистрация
+2)Логин и сравнивание паролей через хэш-версию пароля (пароль нигде не светится и безопасен)
+3)Выгрузка файлов на сервер
+4)Выгрузка данных текстовых файлов в базу данных на сервер
+5)Загрузка (скачивание) файлов из сервера и сохранение их в новые xlsx данные
+6)В разработке: возможность выбрать имена для столбцов в новом .xlsx файле
+
+
 Login for this project has been taken from the project "passport-node-js" in my repository
+
 
 in some html there is an input with an attribute "type = "file"" which means that there is enough to display button which will allow to
 load some files to your server. More of other data is to just make it correctly and continue to work with this file
@@ -15,7 +25,7 @@ How to start this application:
 "mysql.server start"
 3)After it login to mySql
 sudo mysql -u root -p
-   Ввести пароль "MAC"(запуск super user)
+   Ввести пароль "MAC"(запуск super user) который соответствует реальному паролю для входа в ОС на маке в данный момент
    а а затем пароль базы данных "password" - is a real password)
 4) After it use this command for start application:
 node myAppVersionFour (before it was node fileUploadingVersionThreeLoginWithSQL)

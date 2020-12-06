@@ -1,8 +1,14 @@
+<div class ="header">
+<h1>
+Please, log in before access to app
+</h1>
+</div>
 <h1>Login</h1>
 <% if (messages.error) { %>
   <%= messages.error %>
 <% } %>
 <form action="/login" method="POST">
+<div class ="wrapper">
   <div>
     <label for="email">Email</label>
     <input type="email" id="email" name="email" required>
@@ -12,5 +18,7 @@
     <input type="password" id="password" name="password" required>
   </div>
   <button type="submit">Login</button>
+  </div>
 </form>
 <a href="/register">Register</a>
+<link href="stylesLogin.css" rel="stylesheet" type="text/css">

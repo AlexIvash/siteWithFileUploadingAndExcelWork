@@ -1,0 +1,11 @@
+body{
+    background: aliceblue;
+    padding-top: 50px;
+    padding-bottom: 80px;
+    color: cornflowerblue;
+    margin: 20% 40%;
+}
+input:hover{
+    background: #ffcc01;
+    color: cornflowerblue;
+}

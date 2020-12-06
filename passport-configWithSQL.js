@@ -19,6 +19,12 @@ try {
   console.log(e);
 }
 
+/**
+ * This is a global variable which will be accesses from myAppVersionFour and for this variable we will set special value
+ */
+var authorEmail;
+
+
 const LocalStrategy = require('passport-local').Strategy
 const bcrypt = require('bcrypt')
 /** by default, local strategy use username and password, we will override with email and password
@@ -35,7 +41,6 @@ function initialize(passport, databaseUserId, databaseUserEmail) {
 
   const authenticateUser = async (email, password, done) => {
     console.log("I am password entered in field: " + password);
-
     /**
      * Это - неправильная реализация функции проверки
      * TODO: нужно сделать запрос таким который ищет именно по этому email в базе данных и если нету такого юзера в базе данных
@@ -45,6 +50,14 @@ function initialize(passport, databaseUserId, databaseUserEmail) {
 
     const user = databaseUserEmail(email);
     const userId = databaseUserId(email);
+
+
+    /**
+     *  TODO: Нужно построить ассоциацию на username который залогинился и этот username вписывать как author в таблицу с контентом который мы копируем и вставляем
+     *TODO: Функция должна находиться в myAppVersionFour, но рядом с функциями:
+     * insertTextToDatabase и convertExcelToCsvAndInsertIntoDataBase
+     * Но username или email (потому что логин все же по эмэйлу происходит - будем брать отсюда. Или все же из myAppVersionFour где он подтягивается
+     */
 
     /**
      * Это console.log вернется [object Promise] но не смотря на то что здесь возвращает console.log - это мегаохрененно работает
@@ -77,7 +90,6 @@ function initialize(passport, databaseUserId, databaseUserEmail) {
     }
   }
 
-
   /**
    * { usernameField: 'email' } - данные который мы считываем из поля "login" при логине в файле login.ejs
    * authenticateUser - это функция которая в этом мануале ( http://www.passportjs.org/docs/username-password/ ) - заменяет обычную переданную в аргументах функцию
@@ -97,6 +109,54 @@ function initialize(passport, databaseUserId, databaseUserEmail) {
   //passport.deserializeUser((userId, done) => {
     //return done(null, userId)
   });
+ // let databaseUserEmail = { usernameField: 'email'};
+  var authorEmail = databaseUserEmail;
+  var returnAuthorEmail = function(){
+    return authorEmail;
+  }
+  //var authorEmail = { usernameField: 'email'};
 }
 
+var functionGetAuthorEmail = function(){
+  var authorrEmail = returnAuthorEmail();
+  //return authorrEmail;
+}
+
+//var userInformation = new Object();
+//userInformation.email = { usernameField: 'email'};
+
+
+
+//const databaseUserEmail = { usernameField: 'email' };
+const databaseUserEmail = 'email';//temporary for testing purpose
+var authorrEmail= authorEmail;
+
+//const databaseUserEmail = returndatabaseUserEmail;
+//const authorEmail = user;
+//const authorEmail = databaseUserEmail;
+//const authorEmail = { usernameField: 'email' };
+/**
+ * Мы фактически экспортируем всю функцию initialize в программу myAppVersionFour, соответственно вместе с функцией мы экспортируем и
+ * { usernameField: 'email' } - который мы будем использовать для ассоциации с каким-нибудь контентом
+ *
+ *
+ * module.exports (взято отсюда https://nodejs.org/api/modules.html#modules_module_exports и https://stackoverflow.com/questions/14020189/node-js-accessing-local-variables-from-another-module) -
+ * это стандартный вариант экспорта функций или переменных. module.exports = initialize - экспорт функции
+ * module.exports.authorEmail = databaseUserEmail - экспорт authorEmail переменной которая указывает на databaseUserEmail переменную
+ * Этот метод и эта переменная используются в myAppVersionFour.js файле
+ */
+
 module.exports = initialize
+module.exports.authorEmail = databaseUserEmail
+//module.exports = functionGetAuthorEmail
+
+//module.exports.initialize.returndatabaseUserEmail
+//module.exports.authorEmail = { usernameField: 'email' }
+//module.exports.authorEmail = databaseUserEmail(email)
+//module.exports.authorEmail = databaseUserId(id)
+//module.exports.authorEmail = authorrEmail
+
+
+//module.export = databaseUserEmail
+//module.exports = returndatabaseUserEmail
+//export const emailToBeAssociatedWithContent;

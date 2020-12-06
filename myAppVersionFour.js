@@ -4,8 +4,6 @@
  * (which means that on data in this file we have worked exactly during request to mysql)
  */
 
-
-
 if (process.env.NODE_ENV !== 'production') {
     /**
      * Here we add our .env file
@@ -27,7 +25,9 @@ const xlsx = require("xlsx");
 const session = require('express-session');
 const methodOverride = require('method-override');
 const mysql = require('mysql2');
+
 //const mysql = require('mysql2/promise');
+
 /**
  * After start the server - you can download the file with using this url:
  * http://localhost:3000/newDataFile.xlsx?secret=o_O
@@ -90,13 +90,29 @@ try {
          * TODO: После сделать хранение данных в базе данных
          */
 
-
 const initializePassport = require('./passport-configWithSQL')
 initializePassport(
     passport,
     email => connectionQueryId('SELECT id FROM credentials WHERE email = ?', user=> user.email === email),
     email => connectionQueryEmail("SELECT email, password_hash FROM credentials WHERE email = ?", user=> user.email === email)
     )
+
+
+/**
+ * Это попытка получить переменную databaseUserEmail
+ */
+//const getdatabaseUserEmail = require('./passport-configWithSQL')
+//const databaseUserEmail = getdatabaseUserEmail.returndatabaseUserEmail();
+//getdatabaseUserEmail(returndatabaseUserEmail);
+//getdatabaseUserEmail.returndatabaseUserEmail();
+//const databaseUserEmail = returndatabaseUserEmail();
+//passportData.returndatabaseUserEmail();
+//require('./passport-configWithSQL').returndatabaseUserEmail;
+//console.log(require('./passport-configWithSQL').returndatabaseUserEmail);
+//require('./passport-configWithSQL').databaseUserEmail;
+//console.log(require('./passport-configWithSQL').databaseUserEmail);
+//console.log("login email test: " + require('./passport-configWithSQL').databaseUserEmail);
+//const authorName = require('./passport-configWithSQL').databaseUserEmail;
 
 app.set('view-engine', 'ejs')
 app.use(express.urlencoded({ extended: false }))
@@ -170,10 +186,33 @@ app.post('/', (req, res) => {
      */
     if(req.files) {
         console.log(req.files);
-        let users_file = req.files.file;
-        let fileName = users_file.name;
 
-        console.log("Загружаем файл " + fileName + " в базу данных");
+
+
+
+
+        //const authorName = require('./passport-configWithSQL');
+
+
+
+        //const authorEmailForDB = authorName.authorEmail;
+
+
+
+        const users_file = req.files.file;
+        //let fileName = users_file.name;
+        const authorName = require('./passport-configWithSQL');
+        console.log("login email test: " + authorName.authorEmail);
+        let usersData ={
+            fileName: users_file.name,
+            authorEmailForDB: authorName.authorEmail
+           // authorEmailForDB: authorName.functionGetAuthorEmail()
+            //authorEmailForDB: functionGetAuthorEmail()
+        }
+
+        //let emailToBeAssociatedWithContent = email => connectionQueryEmail("SELECT email, password_hash FROM credentials WHERE email = ?", user=> user.email === email);
+        // //этот запрос относительно работает, но он неисправен потому что сам указатель на emailToBeAssociatedWithContent видимо берет все email из доступных таблиц
+        console.log("Загружаем файл " + usersData.fileName + " в базу данных");
 
 
         /**
@@ -187,10 +226,23 @@ app.post('/', (req, res) => {
          [Error: ENOENT: no such file or directory, open 'LOAD_FILE(users_file)'] {
          Причем не важно что я пытался обработать - image/xlsx файл - ошибка была с тем же значением. Или workOnFile работает неправильно
          или я неправильно написал запрос на то чтобы вставить файл в базу данных
+
+         В итоге сработали запросы:
+         //connection.query("INSERT INTO media (file, file_name, author) VALUES (\'LOAD_FILE(users_file)\', ?, 'authorname')", fileName, function (error, result) {
+         И
+         connection.query("INSERT INTO media (file, file_name, author) VALUES (\'LOAD_FILE(users_file)\', ?, ?)", [usersData.fileName, usersData.authorEmailForDB], function (error, result) {
          */
+        /**
+         * Этот запрос вставляет данные того пользователя который вставляет какой-либо контент в приложение. Именно поэтому
+         * он стоит здесь вторым после того как в первом запросе мы просто вставили данные в таблицу
+         * */
 
-        connection.query("INSERT INTO media (file, file_name) VALUES (\'LOAD_FILE(users_file)\', ?)", fileName,function (error, result) {
+      //  import returndatabaseUserEmail from './passport-configWithSQL';
+        //const databaseUserEmail = returndatabaseUserEmail();
 
+
+
+        connection.query("INSERT INTO media (file, file_name, author) VALUES (\'LOAD_FILE(users_file)\', ?, ?)", [usersData.fileName, usersData.authorEmailForDB], function (error, result) {
         if (error) {
                 console.log(error);
                 throw error;
@@ -203,6 +255,32 @@ app.post('/', (req, res) => {
             }
         });
 
+
+        //async function insertTextToDatabase(fileToInsert, emailToBeAssociatedWithContent){
+        /*TODO: Добавить одну колонку author и записать туда emailToBeAssociatedWithContent
+  emailToBeAssociatedWithContent = { usernameField: 'email' };
+        нужно сделать так чтобы emailToBeAssociatedWithContent был доступен здесь
+
+        Но вот этот запрос не подойдет - нам нужно будет создать еще один запрос в котором вставлять emailToBeAssociatedWithContent на один уровень с только что вставленной записью из файла
+         connection.query("LOAD DATA INFILE ? INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (id, region, brand, state, cost, sales);", fileToInsert, function (error, result) {
+
+
+  Поэтому решение должно быть подобное - но вставить его после запроса с вставкой данных из sql:
+
+  connection.query("INSERT INTO excel (author) VALUES (?)", emailToBeAssociatedWithContent, function (error, result) {
+  if (error) {
+              console.log(error);
+              throw error;
+          } try {
+              console.log("File was successfully inserted to database");
+          } catch (error) {
+              console.log("Error happened during request to DATABASE");
+              throw error;
+          }
+      });
+
+      */
+        //emailToBeAssociatedWithContent = { usernameField: 'email' };
 
     }
 })
@@ -680,7 +758,6 @@ async function connectionQueryEmail(databaseQuery, email) {
             console.log("convertExcelToCsv has been done successfully")
     insertTextToDatabase(convertedFileName)
 }
-
 async function insertTextToDatabase(fileToInsert){
     connection.query("LOAD DATA INFILE ? INTO TABLE excel CHARACTER SET latin1 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"' LINES TERMINATED BY '\n' IGNORE 1 LINES (id, region, brand, state, cost, sales);", fileToInsert, function (error, result) {
         if (error) {
@@ -693,7 +770,10 @@ async function insertTextToDatabase(fileToInsert){
             throw error;
         }
     });
+
 }
+
+
 
 /**
  * Эта функция МОГЛА БЫ БЫТЬ универсальна для любых запросов в базу данных, включая

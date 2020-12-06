@@ -1,0 +1,19 @@
+body{
+    background: aliceblue;
+    color: cornflowerblue;
+}
+.header {
+    margin-top: 7%;
+    margin-left: 19%;
+
+}
+.header h1{
+    color: black;
+}
+.wrapper{
+    margin: 15% 45%;
+}
+input:hover{
+    background: #ffcc01;
+    color: cornflowerblue;
+}
